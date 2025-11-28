@@ -30,7 +30,7 @@ namespace :mastodon do
       prompt.say "\n"
 
       # Single user mode 안내만 출력하고, 기본값으로 비활성화
-      prompt.say('Single user mode disables registrations and redirects the landing page to your public profile.')
+      prompt.say('Single user mode disables registrations and redirects the landing page to your public profile.\nHowever, Mastodon Longwhile Edition does not support single user mode.')
       env['SINGLE_USER_MODE'] = false
 
       %w(SECRET_KEY_BASE OTP_SECRET).each do |key|
@@ -51,78 +51,121 @@ namespace :mastodon do
       env['VAPID_PRIVATE_KEY'] = vapid_key.private_key
       env['VAPID_PUBLIC_KEY']  = vapid_key.public_key
 
-      prompt.say "\n"
-
       # Docker는 사용하지 않는 고정값
       using_docker        = false
       db_connection_works = false
 
       prompt.say "\n"
 
-      # PostgreSQL 설정: 호스트/포트/DB/유저는 고정, 비밀번호만 입력
-      env['DB_HOST'] = '/var/run/postgresql'
-      env['DB_PORT'] = 5432
-      env['DB_NAME'] = 'mastodon_production'
-      env['DB_USER'] = 'mastodon'
+      # PostgreSQL 설정
+      loop do
+        env['DB_HOST'] = prompt.ask('PostgreSQL host:') do |q|
+          q.required true
+          q.default using_docker ? 'db' : '/var/run/postgresql'
+          q.modify :strip
+        end
 
-      env['DB_PASS'] = prompt.ask('Password of PostgreSQL user:') do |q|
-        q.echo false
-      end
+        env['DB_PORT'] = prompt.ask('PostgreSQL port:') do |q|
+          q.required true
+          q.default 5432
+          q.convert :int
+        end
 
-      # The chosen database may not exist yet. Connect to default database
-      # to avoid "database does not exist" error.
-      db_options = {
-        adapter: :postgresql,
-        database: 'postgres',
-        host: env['DB_HOST'],
-        port: env['DB_PORT'],
-        user: env['DB_USER'],
-        password: env['DB_PASS'],
-      }
+        env['DB_NAME'] = prompt.ask('Name of PostgreSQL database:') do |q|
+          q.required true
+          q.default using_docker ? 'postgres' : 'mastodon_production'
+          q.modify :strip
+        end
 
-      begin
-        ActiveRecord::Base.establish_connection(db_options)
-        ActiveRecord::Base.connection
-        prompt.ok 'Database configuration works! 🎆'
-        db_connection_works = true
-      rescue => e
-        prompt.error 'Database connection could not be established with this configuration.'
-        prompt.error e.message
-        errors << 'Database connection could not be established.'
+        env['DB_USER'] = prompt.ask('Name of PostgreSQL user:') do |q|
+          q.required true
+          q.default using_docker ? 'postgres' : 'mastodon'
+          q.modify :strip
+        end
+
+        env['DB_PASS'] = prompt.ask('Password of PostgreSQL user:') do |q|
+          q.echo false
+        end
+
+        # The chosen database may not exist yet. Connect to default database
+        # to avoid "database does not exist" error.
+        db_options = {
+          adapter: :postgresql,
+          database: 'postgres',
+          host: env['DB_HOST'],
+          port: env['DB_PORT'],
+          user: env['DB_USER'],
+          password: env['DB_PASS'],
+        }
+
+        begin
+          ActiveRecord::Base.establish_connection(db_options)
+          ActiveRecord::Base.connection
+          prompt.ok 'Database configuration works! 🎆'
+          db_connection_works = true
+          break
+        rescue => e
+          prompt.error 'Database connection could not be established with this configuration, try again.'
+          prompt.error e.message
+          unless prompt.yes?('Try again?')
+            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
+
+            errors << 'Database connection could not be established.'
+            break
+          end
+        end
       end
 
       prompt.say "\n"
 
-      # Redis 설정: 호스트/포트는 고정, 비밀번호만 입력
-      env['REDIS_HOST'] = 'localhost'
-      env['REDIS_PORT'] = 6379
-      env['REDIS_PASSWORD'] = prompt.ask('Redis password:') do |q|
-        q.required false
-        q.default nil
-        q.modify :strip
-      end
+      # Redis 설정
+      loop do
+        env['REDIS_HOST'] = prompt.ask('Redis host:') do |q|
+          q.required true
+          q.default using_docker ? 'redis' : 'localhost'
+          q.modify :strip
+        end
 
-      redis_options = {
-        host: env['REDIS_HOST'],
-        port: env['REDIS_PORT'],
-        password: env['REDIS_PASSWORD'],
-        driver: :hiredis,
-      }
+        env['REDIS_PORT'] = prompt.ask('Redis port:') do |q|
+          q.required true
+          q.default 6379
+          q.convert :int
+        end
 
-      begin
-        redis = Redis.new(redis_options)
-        redis.ping
-        prompt.ok 'Redis configuration works! 🎆'
-      rescue => e
-        prompt.error 'Redis connection could not be established with this configuration.'
-        prompt.error e.message
-        errors << 'Redis connection could not be established.'
+        env['REDIS_PASSWORD'] = prompt.ask('Redis password:') do |q|
+          q.required false
+          q.default nil
+          q.modify :strip
+        end
+
+        redis_options = {
+          host: env['REDIS_HOST'],
+          port: env['REDIS_PORT'],
+          password: env['REDIS_PASSWORD'],
+          driver: :hiredis,
+        }
+
+        begin
+          redis = Redis.new(redis_options)
+          redis.ping
+          prompt.ok 'Redis configuration works! 🎆'
+          break
+        rescue => e
+          prompt.error 'Redis connection could not be established with this configuration, try again.'
+          prompt.error e.message
+
+          unless prompt.yes?('Try again?')
+            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
+
+            errors << 'Redis connection could not be established.'
+            break
+          end
+        end
       end
 
       prompt.say "\n"
 
-      # 업로드 파일은 로컬 저장소 사용 (클라우드 설정 스킵)
-      if false
+      if prompt.yes?('Do you want to store uploaded files on the cloud?', default: false)
         case prompt.select('Provider', ['DigitalOcean Spaces', 'Amazon S3', 'Wasabi', 'Minio', 'Google Cloud Storage', 'Storj DCS'])
         when 'DigitalOcean Spaces'
           env['S3_ENABLED'] = 'true'
@@ -315,71 +358,104 @@ namespace :mastodon do
 
       prompt.say "\n"
 
-      # SMTP는 항상 외부 서버 사용, 서버/포트/인증방식 등은 고정
-      env['SMTP_SERVER'] = 'smtp.mailgun.org'
-      env['SMTP_PORT'] = 587
-      env['SMTP_AUTH_METHOD'] = 'plain'
-      env['SMTP_OPENSSL_VERIFY_MODE'] = 'peer'
-      env['SMTP_ENABLE_STARTTLS'] = 'auto'
-
-      env['SMTP_LOGIN'] = prompt.ask('SMTP username:') do |q|
-        q.modify :strip
-      end
-
-      env['SMTP_PASSWORD'] = prompt.ask('SMTP password:') do |q|
-        q.echo false
-      end
-
-      env['SMTP_FROM_ADDRESS'] = prompt.ask('E-mail address to send e-mails "from":') do |q|
-        q.required true
-        q.default "Mastodon <notifications@#{env['LOCAL_DOMAIN']}>"
-        q.modify :strip
-      end
-
-      # 테스트 메일은 항상 한 번 보내고, 수신 주소는 고정
-      send_to = 'eunseo5207@gmail.com'
-
-      begin
-        enable_starttls = nil
-        enable_starttls_auto = nil
-
-        case env['SMTP_ENABLE_STARTTLS']
-        when 'always'
-          enable_starttls = true
-        when 'never'
-          enable_starttls = false
-        when 'auto'
-          enable_starttls_auto = true
+      loop do
+        if prompt.yes?('Do you want to send e-mails from localhost?', default: false)
+          env['SMTP_SERVER'] = 'localhost'
+          env['SMTP_PORT'] = 25
+          env['SMTP_AUTH_METHOD'] = 'none'
+          env['SMTP_OPENSSL_VERIFY_MODE'] = 'none'
+          env['SMTP_ENABLE_STARTTLS'] = 'auto'
         else
-          enable_starttls_auto = env['SMTP_ENABLE_STARTTLS_AUTO'] != 'false'
+          env['SMTP_SERVER'] = prompt.ask('SMTP server:') do |q|
+            q.required true
+            q.default 'smtp.mailgun.org'
+            q.modify :strip
+          end
+
+          env['SMTP_PORT'] = prompt.ask('SMTP port:') do |q|
+            q.required true
+            q.default 587
+            q.convert :int
+          end
+
+          env['SMTP_LOGIN'] = prompt.ask('SMTP username:') do |q|
+            q.modify :strip
+          end
+
+          env['SMTP_PASSWORD'] = prompt.ask('SMTP password:') do |q|
+            q.echo false
+          end
+
+          env['SMTP_AUTH_METHOD'] = prompt.ask('SMTP authentication:') do |q|
+            q.required
+            q.default 'plain'
+            q.modify :strip
+          end
+
+          env['SMTP_OPENSSL_VERIFY_MODE'] = prompt.select('SMTP OpenSSL verify mode:', %w(none peer client_once fail_if_no_peer_cert))
+
+          env['SMTP_ENABLE_STARTTLS'] = prompt.select('Enable STARTTLS:', %w(auto always never))
         end
 
-        ActionMailer::Base.smtp_settings = {
-          port: env['SMTP_PORT'],
-          address: env['SMTP_SERVER'],
-          user_name: env['SMTP_LOGIN'].presence,
-          password: env['SMTP_PASSWORD'].presence,
-          domain: env['LOCAL_DOMAIN'],
-          authentication: env['SMTP_AUTH_METHOD'] == 'none' ? nil : env['SMTP_AUTH_METHOD'] || :plain,
-          openssl_verify_mode: env['SMTP_OPENSSL_VERIFY_MODE'],
-          enable_starttls: enable_starttls,
-          enable_starttls_auto: enable_starttls_auto,
-        }
+        env['SMTP_FROM_ADDRESS'] = prompt.ask('E-mail address to send e-mails "from":') do |q|
+          q.required true
+          q.default "Mastodon <notifications@#{env['LOCAL_DOMAIN']}>"
+          q.modify :strip
+        end
 
-        ActionMailer::Base.default_options = {
-          from: env['SMTP_FROM_ADDRESS'],
-        }
+        break unless prompt.yes?('Send a test e-mail with this configuration right now?')
 
-        mail = ActionMailer::Base.new.mail(
-          to: send_to,
-          subject: 'Test', # rubocop:disable Rails/I18nLocaleTexts
-          body: 'Mastodon SMTP configuration works!'
-        )
-        mail.deliver
-      rescue => e
-        prompt.error 'E-mail could not be sent with this configuration.'
-        prompt.error e.message
-        errors << 'E-email was not sent successfully.'
+        send_to = prompt.ask('Send test e-mail to:', required: true)
+
+        begin
+          enable_starttls = nil
+          enable_starttls_auto = nil
+
+          case env['SMTP_ENABLE_STARTTLS']
+          when 'always'
+            enable_starttls = true
+          when 'never'
+            enable_starttls = false
+          when 'auto'
+            enable_starttls_auto = true
+          else
+            enable_starttls_auto = env['SMTP_ENABLE_STARTTLS_AUTO'] != 'false'
+          end
+
+          ActionMailer::Base.smtp_settings = {
+            port: env['SMTP_PORT'],
+            address: env['SMTP_SERVER'],
+            user_name: env['SMTP_LOGIN'].presence,
+            password: env['SMTP_PASSWORD'].presence,
+            domain: env['LOCAL_DOMAIN'],
+            authentication: env['SMTP_AUTH_METHOD'] == 'none' ? nil : env['SMTP_AUTH_METHOD'] || :plain,
+            openssl_verify_mode: env['SMTP_OPENSSL_VERIFY_MODE'],
+            enable_starttls: enable_starttls,
+            enable_starttls_auto: enable_starttls_auto,
+          }
+
+          ActionMailer::Base.default_options = {
+            from: env['SMTP_FROM_ADDRESS'],
+          }
+
+          mail = ActionMailer::Base.new.mail(
+            to: send_to,
+            subject: 'Test', # rubocop:disable Rails/I18nLocaleTexts
+            body: 'Mastodon SMTP configuration works!'
+          )
+          mail.deliver
+          break
+        rescue => e
+          prompt.error 'E-mail could not be sent with this configuration, try again.'
+          prompt.error e.message
+
+          unless prompt.yes?('Try again?')
+            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
+
+            errors << 'E-email was not sent successfully.'
+            break
+          end
+        end
       end
 
       prompt.say "\n"
