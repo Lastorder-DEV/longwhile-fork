@@ -17,7 +17,7 @@ module Mastodon
     end
 
     def default_prerelease
-      'longwhile'
+      'alpha.5'
     end
 
     def prerelease
@@ -25,7 +25,7 @@ module Mastodon
     end
 
     def build_metadata
-      version_configuration[:metadata]
+      version_configuration[:metadata] || 'longwhile'
     end
 
     def to_a
@@ -35,7 +35,7 @@ module Mastodon
     def to_s
       components = [to_a.join('.')]
       components << "-#{prerelease}" if prerelease.present?
-      components << "+longwhile#{build_metadata}" if build_metadata.present?
+      components << "+#{build_metadata}" if build_metadata.present?
       components.join
     end
 

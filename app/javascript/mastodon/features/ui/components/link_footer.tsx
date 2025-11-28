@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { domain, version } from 'mastodon/initial_state';
+import { domain, version, source_url } from 'mastodon/initial_state';
 
 export const LinkFooter: React.FC<{
   multiColumn: boolean;
@@ -24,7 +24,7 @@ export const LinkFooter: React.FC<{
         개인정보처리방침
       </Link>{' '}
       <a
-        href='https://github.com/long-while/longwhile-mastodon'
+        href={source_url}
         target='_blank'
         rel='noopener'
         className='version'
