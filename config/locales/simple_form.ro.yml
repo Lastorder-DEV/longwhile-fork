@@ -186,7 +186,6 @@ ro:
         otp_attempt: Cod dublă protecție
         password: Parolă
         phrase: Cuvânt sau frază
-        setting_advanced_layout: Activează interfața web avansată
         setting_aggregate_reblogs: Grupează impulsurile în fluxuri
         setting_auto_play_gif: Redă automat animațiile GIF
         setting_boost_modal: Arată dialogul de confirmare înainte de a impulsiona

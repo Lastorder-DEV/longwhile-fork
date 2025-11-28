@@ -29,9 +29,9 @@ import { expandHomeTimeline } from '../../actions/timelines';
 import initialState, { me, owner, singleUserMode, trendsEnabled, trendsAsLanding, disableHoverCards } from '../../initial_state';
 
 import BundleColumnError from './components/bundle_column_error';
-import Header from './components/header';
 import { UploadArea } from './components/upload_area';
 import { HashtagMenuController } from './components/hashtag_menu_controller';
+import { NavigationBar } from './components/navigation_bar';
 import ColumnsAreaContainer from './containers/columns_area_container';
 import LoadingBarContainer from './containers/loading_bar_container';
 import ModalContainer from './containers/modal_container';
@@ -142,13 +142,8 @@ class SwitchingColumnsArea extends PureComponent {
   };
 
   UNSAFE_componentWillMount () {
-    if (this.props.singleColumn) {
-      document.body.classList.toggle('layout-single-column', true);
-      document.body.classList.toggle('layout-multiple-columns', false);
-    } else {
-      document.body.classList.toggle('layout-single-column', false);
-      document.body.classList.toggle('layout-multiple-columns', true);
-    }
+    document.body.classList.add('layout-single-column');
+    document.body.classList.remove('layout-multiple-columns');
   }
 
   componentDidUpdate (prevProps) {
@@ -156,10 +151,8 @@ class SwitchingColumnsArea extends PureComponent {
       this.node.handleChildrenContentChange();
     }
 
-    if (prevProps.singleColumn !== this.props.singleColumn) {
-      document.body.classList.toggle('layout-single-column', this.props.singleColumn);
-      document.body.classList.toggle('layout-multiple-columns', !this.props.singleColumn);
-    }
+    document.body.classList.add('layout-single-column');
+    document.body.classList.remove('layout-multiple-columns');
   }
 
   setRef = c => {
@@ -210,11 +203,12 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/terms-of-service/:date?' component={TermsOfService} content={children} />
 
             <WrappedRoute path={['/home', '/timelines/home']} component={HomeTimeline} content={children} />
+
             <Redirect from='/timelines/public' to='/public' exact />
-            <Redirect from='/timelines/public/local' to='/public/local' exact />
+            <Redirect from='/timelines/local' to='/local' exact />
             <WrappedRoute path='/public' exact component={Firehose} componentParams={{ feedType: 'public' }} content={children} />
-            <WrappedRoute path='/public/local' exact component={Firehose} componentParams={{ feedType: 'community' }} content={children} />
-            <WrappedRoute path='/public/remote' exact component={Firehose} componentParams={{ feedType: 'public:remote' }} content={children} />
+            <WrappedRoute path='/local' exact component={Firehose} componentParams={{ feedType: 'community' }} content={children} />
+
             <WrappedRoute path={['/conversations', '/timelines/direct']} component={DirectTimeline} content={children} />
             <WrappedRoute path='/tags/:id' component={HashtagTimeline} content={children} />
             <WrappedRoute path='/links/:url' component={LinkTimeline} content={children} />
@@ -232,7 +226,7 @@ class SwitchingColumnsArea extends PureComponent {
 
             <WrappedRoute path={['/start', '/start/profile']} exact component={OnboardingProfile} content={children} />
             <WrappedRoute path='/start/follows' component={OnboardingFollows} content={children} />
-            <WrappedRoute path='/directory' component={Directory} content={children} />
+            {/* <WrappedRoute path='/directory' component={Directory} content={children} /> */}
             <WrappedRoute path='/explore' component={Explore} content={children} />
             <WrappedRoute path='/search' component={Search} content={children} />
             <WrappedRoute path={['/publish', '/statuses/new']} component={Compose} content={children} />
@@ -535,7 +529,7 @@ class UI extends PureComponent {
   };
 
   handleHotkeyGoToLocal = () => {
-    this.props.history.push('/public/local');
+    this.props.history.push('/local');
   };
 
   handleHotkeyGoToFederated = () => {
@@ -603,13 +597,13 @@ class UI extends PureComponent {
     return (
       <HotKeys keyMap={keyMap} handlers={handlers} ref={this.setHotkeysRef} attach={window} focused>
         <div className={classNames('ui', { 'is-composing': isComposing })} ref={this.setRef}>
-          <Header />
 
           <SwitchingColumnsArea identity={this.props.identity} location={location} singleColumn={layout === 'mobile' || layout === 'single-column'} forceOnboarding={firstLaunch && newAccount}>
             {children}
           </SwitchingColumnsArea>
 
           {layout !== 'mobile' && <PictureInPicture />}
+          {layout === 'mobile' && <NavigationBar />}
           <AlertsController />
           {!disableHoverCards && <HoverCardController />}
           <HashtagMenuController />

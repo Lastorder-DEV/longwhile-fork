@@ -15,8 +15,8 @@ defaults: &defaults
   timeline_preview: true
   show_staff_badge: true
   preview_sensitive_media: false
-  noindex: false
-  theme: 'system'
+  noindex: true
+  theme: 'mastodon-bird-ui-light'
   trends: true
   trends_as_landing_page: true
   trendable_by_default: false
@@ -52,6 +52,13 @@ defaults: &defaults
   backups_retention_period: 7
   captcha_enabled: false
   allow_referer_origin: false
+  multi_account:
+    client_id: <%= ENV.fetch('MA_MULTI_ACCOUNT_CLIENT_ID', '') %>
+    client_secret: <%= ENV.fetch('MA_MULTI_ACCOUNT_CLIENT_SECRET', '') %>
+    redirect_uri: <%= ENV.fetch('MA_MULTI_ACCOUNT_REDIRECT_URI', '') %>
+    retain_tokens: <%= ENV.fetch('MA_MULTI_ACCOUNT_RETAIN_TOKENS', 'true') %>
+    refresh_flow: <%= ENV.fetch('MA_MULTI_ACCOUNT_REFRESH_FLOW', 'true') %>
+    scopes: <%= ENV.fetch('MA_MULTI_ACCOUNT_SCOPES', 'read write follow push') %>
 
 development:
   <<: *defaults
@@ -61,3 +68,4 @@ test:
 
 production:
   <<: *defaults
+

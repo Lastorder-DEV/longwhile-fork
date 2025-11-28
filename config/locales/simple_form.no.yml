@@ -194,7 +194,6 @@
         otp_attempt: Tofaktorkode
         password: Passord
         phrase: Nøkkelord eller frase
-        setting_advanced_layout: Skru på det avanserte nettgrensesnittet
         setting_aggregate_reblogs: Samle fremhevinger i tidslinjer
         setting_always_send_emails: Alltid send e-postvarslinger
         setting_auto_play_gif: Autoavspill animert GIF-filer

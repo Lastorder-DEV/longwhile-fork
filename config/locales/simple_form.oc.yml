@@ -126,7 +126,6 @@ oc:
         otp_attempt: Còdi Two-factor
         password: Senhal
         phrase: Senhal o frasa
-        setting_advanced_layout: Activar l’interfàcia web avançada
         setting_aggregate_reblogs: Agropar los partatges dins lo flux d’actualitat
         setting_always_send_emails: Totjorn enviar los corrièls de notificacion
         setting_auto_play_gif: Lectura automatica dels GIFS animats

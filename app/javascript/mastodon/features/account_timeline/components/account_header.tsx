@@ -1034,9 +1034,12 @@ export const AccountHeader: React.FC<{
 
       {!(hideTabs || hidden) && (
         <div className='account__section-headline'>
+          {/* Featured 탭 제거 */}
+          {/*
           <NavLink exact to={`/@${account.acct}/featured`}>
             <FormattedMessage id='account.featured' defaultMessage='Featured' />
           </NavLink>
+          */}
           <NavLink exact to={`/@${account.acct}`}>
             <FormattedMessage id='account.posts' defaultMessage='Posts' />
           </NavLink>

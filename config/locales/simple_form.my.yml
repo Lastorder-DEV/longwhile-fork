@@ -192,7 +192,6 @@ my:
         otp_attempt: နှစ်ဆင့်ခံလုံခြုံရေးကုဒ်
         password: စကားဝှက်
         phrase: အဓိကစကားလုံး သို့မဟုတ် စကားစု
-        setting_advanced_layout: အဆင့်မြှင့်ထားသည့်ဝဘ်ကို ဖွင့်ပါ
         setting_aggregate_reblogs: စာမျက်နှာများရှိ အဖွဲ့လိုက် Boost များ
         setting_always_send_emails: အီးမေးလ်သတိပေးချက်များကို အမြဲပို့ပါ
         setting_auto_play_gif: ကာတွန်း GIF များကို အလိုအလျောက်ဖွင့်ပါ

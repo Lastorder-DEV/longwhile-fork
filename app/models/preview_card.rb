@@ -118,7 +118,7 @@ class PreviewCard < ApplicationRecord
     false
   end
 
-  def missing_image?
+  def i_missingmage?
     width.present? && height.present? && image_file_name.blank?
   end
 

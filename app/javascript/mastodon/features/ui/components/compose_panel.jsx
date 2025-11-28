@@ -1,64 +1,55 @@
-import PropTypes from 'prop-types';
-import { PureComponent } from 'react';
+import { useCallback, useEffect } from 'react';
 
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import { changeComposing, mountCompose, unmountCompose } from 'mastodon/actions/compose';
 import ServerBanner from 'mastodon/components/server_banner';
 import { Search } from 'mastodon/features/compose/components/search';
 import ComposeFormContainer from 'mastodon/features/compose/containers/compose_form_container';
 import { LinkFooter } from 'mastodon/features/ui/components/link_footer';
-import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
+import { withIdentity } from 'mastodon/identity_context';
+import { useBreakpoint } from 'mastodon/hooks/useBreakpoint';
 
-class ComposePanel extends PureComponent {
-  static propTypes = {
-    identity: identityContextPropShape,
-    dispatch: PropTypes.func.isRequired,
-  };
+const ComposePanel = ({ identity }) => {
+  const dispatch = useDispatch();
+  const { signedIn } = identity;
 
-  onFocus = () => {
-    const { dispatch } = this.props;
-    dispatch(changeComposing(true));
-  };
+  const showSearch = !useBreakpoint('full');
 
-  onBlur = () => {
-    const { dispatch } = this.props;
-    dispatch(changeComposing(false));
-  };
-
-  componentDidMount () {
-    const { dispatch } = this.props;
+  useEffect(() => {
     dispatch(mountCompose());
-  }
 
-  componentWillUnmount () {
-    const { dispatch } = this.props;
-    dispatch(unmountCompose());
-  }
+    return () => {
+      dispatch(unmountCompose());
+    };
+  }, [dispatch]);
 
-  render() {
-    const { signedIn } = this.props.identity;
+  const handleFocus = useCallback(() => {
+    dispatch(changeComposing(true));
+  }, [dispatch]);
 
-    return (
-      <div className='compose-panel' onFocus={this.onFocus}>
-        <Search openInRoute />
+  const handleBlur = useCallback(() => {
+    dispatch(changeComposing(false));
+  }, [dispatch]);
 
-        {!signedIn && (
-          <>
-            <ServerBanner />
-            <div className='flex-spacer' />
-          </>
-        )}
+  return (
+    <div className='compose-panel' onFocus={handleFocus} onBlur={handleBlur}>
+      {showSearch && <Search openInRoute singleColumn />}
 
-        {signedIn && (
-          <ComposeFormContainer singleColumn />
-        )}
+      {!signedIn && (
+        <>
+          <ServerBanner />
+          <div className='flex-spacer' />
+        </>
+      )}
 
-        <LinkFooter />
-      </div>
-    );
-  }
+      {signedIn && (
+        <ComposeFormContainer singleColumn />
+      )}
 
-}
+      <LinkFooter />
+    </div>
+  );
+};
 
-export default connect()(withIdentity(ComposePanel));
+export default withIdentity(ComposePanel);

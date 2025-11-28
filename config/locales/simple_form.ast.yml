@@ -100,7 +100,6 @@ ast:
         otp_attempt: Códigu de l'autenticación en dos pasos
         password: Contraseña
         phrase: Pallabra clave o fras
-        setting_advanced_layout: Activar la interfaz web avanzada
         setting_aggregate_reblogs: Agrupar los artículos compartíos nes llinies de tiempu
         setting_always_send_emails: Unviar siempre los avisos per corréu electrónicu
         setting_auto_play_gif: Reproducir automáticamente los GIFs

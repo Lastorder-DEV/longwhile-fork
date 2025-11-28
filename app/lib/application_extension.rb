@@ -38,6 +38,7 @@ module ApplicationExtension
     payload = Oj.dump(event: :kill)
     scope = access_tokens
     scope = scope.where(resource_owner_id: resource_owner.id) unless resource_owner.nil?
+    scope = scope.non_multi_account if MultiAccountConfig.retain_tokens?
     scope.in_batches do |tokens|
       redis.pipelined do |pipeline|
         tokens.ids.each do |id|

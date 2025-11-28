@@ -25,7 +25,7 @@
   /notifications/(*any)
   /pinned
   /public
-  /public/local
+  /local
   /public/remote
   /publish
   /search

@@ -14,13 +14,12 @@ class UserSettings
   setting :show_application, default: true
   setting :default_language, default: nil
   setting :default_sensitive, default: false
-  setting :default_privacy, default: nil, in: %w(public unlisted private)
+  setting :default_privacy, default: 'unlisted', in: %w(unlisted private)
   setting :default_quote_policy, default: 'public', in: %w(public followers nobody)
 
   setting_inverse_alias :indexable, :noindex
 
   namespace :web do
-    setting :advanced_layout, default: false
     setting :trends, default: true
     setting :use_blurhash, default: true
     setting :use_pending_items, default: false
@@ -38,15 +37,15 @@ class UserSettings
   end
 
   namespace :notification_emails do
-    setting :follow, default: true
+    setting :follow, default: false
     setting :reblog, default: false
     setting :favourite, default: false
-    setting :mention, default: true
-    setting :follow_request, default: true
-    setting :report, default: true
-    setting :pending_account, default: true
-    setting :trends, default: true
-    setting :appeal, default: true
+    setting :mention, default: false
+    setting :follow_request, default: false
+    setting :report, default: false
+    setting :pending_account, default: false
+    setting :trends, default: false
+    setting :appeal, default: false
     setting :software_updates, default: 'critical', in: %w(none critical patch all)
   end
 

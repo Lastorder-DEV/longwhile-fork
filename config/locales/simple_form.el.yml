@@ -221,7 +221,6 @@ el:
         otp_attempt: Κωδικός δυο παραγόντων
         password: Συνθηματικό
         phrase: Λέξη ή φράση κλειδί
-        setting_advanced_layout: Ενεργοποίηση προηγμένης λειτουργίας χρήσης
         setting_aggregate_reblogs: Ομαδοποίηση προωθήσεων στις ροές
         setting_always_send_emails: Πάντα να αποστέλλονται ειδοποίησεις μέσω email
         setting_auto_play_gif: Αυτόματη αναπαραγωγή των GIF

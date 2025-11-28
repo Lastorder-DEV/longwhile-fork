@@ -200,7 +200,6 @@ ie:
         otp_attempt: 2-factor code
         password: Passa-parol
         phrase: Clave-parol o frase
-        setting_advanced_layout: Possibilisar web-interfacie avansat
         setting_aggregate_reblogs: Gruppar boosts in témpor-lineas
         setting_always_send_emails: Sempre misser notificationes de e-posta
         setting_auto_play_gif: Reproducter automaticmen animat GIFs

@@ -224,7 +224,6 @@ vi:
         otp_attempt: Mã xác minh 2 bước
         password: Mật khẩu
         phrase: Từ khóa hoặc cụm từ
-        setting_advanced_layout: Bật bố cục nhiều cột
         setting_aggregate_reblogs: Không hiện lượt đăng lại trùng lặp
         setting_always_send_emails: Luôn gửi email thông báo
         setting_auto_play_gif: Tự động phát ảnh GIF

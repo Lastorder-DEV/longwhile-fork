@@ -2,7 +2,7 @@
 
 import WebSocketClient from '@gamestdio/websocket';
 
-import { getAccessToken } from './initial_state';
+import { currentAuthorizationToken } from './api';
 
 /**
  * @type {WebSocketClient | undefined}
@@ -147,8 +147,13 @@ const channelNameWithInlineParams = (channelName, params) => {
 // @ts-expect-error
 export const connectStream = (channelName, params, callbacks) => (dispatch, getState) => {
   const streamingAPIBaseURL = getState().getIn(['meta', 'streaming_api_base_url']);
-  const accessToken = getAccessToken();
+  const accessToken = currentAuthorizationToken();
   const { onConnect, onReceive, onDisconnect } = callbacks(dispatch, getState);
+
+  if (typeof streamingAPIBaseURL !== 'string' || streamingAPIBaseURL.length === 0) {
+    console.warn('Skipping stream connection because streaming_api_base_url is not set.');
+    return () => {};
+  }
 
   if(!accessToken) throw new Error("Trying to connect to the streaming server but no access token is available.");
 

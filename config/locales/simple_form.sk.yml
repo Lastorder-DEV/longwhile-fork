@@ -108,7 +108,6 @@ sk:
         otp_attempt: Dvoj-faktorový overovací kód
         password: Heslo
         phrase: Kľúčové slovo, alebo fráza
-        setting_advanced_layout: Zapni pokročilé užívateľské rozhranie
         setting_aggregate_reblogs: Zoskupuj vyzdvihnutia v časovej osi
         setting_auto_play_gif: Automaticky prehrávaj animované GIFy
         setting_boost_modal: Zobrazuj potvrdzovacie okno pred povýšením

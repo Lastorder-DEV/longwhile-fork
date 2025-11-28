@@ -1,18 +1,16 @@
-import logo from '@/images/logo.svg';
+import logo from '@/images/logos/logo_dark.png';
+import wordmark from '@/images/logos/wordmark_dark.png';
+import m_logo from '@/images/logos/m_logo_dark.png';
 
 export const WordmarkLogo: React.FC = () => (
-  <svg viewBox='0 0 261 66' className='logo logo--wordmark' role='img'>
-    <title>Mastodon</title>
-    <use xlinkHref='#logo-symbol-wordmark' />
-  </svg>
+  <img src={wordmark} alt='Mastodon' className='logo logo--wordmark' />
 );
 
+
 export const IconLogo: React.FC = () => (
-  <svg viewBox='0 0 79 79' className='logo logo--icon' role='img'>
-    <title>Mastodon</title>
-    <use xlinkHref='#logo-symbol-icon' />
-  </svg>
+  <img src={m_logo} alt='Mastodon' className='logo logo--icon' />
 );
+
 
 export const SymbolLogo: React.FC = () => (
   <img src={logo} alt='Mastodon' className='logo logo--icon' />

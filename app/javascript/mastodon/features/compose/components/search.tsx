@@ -31,7 +31,7 @@ const messages = defineMessages({
   placeholder: { id: 'search.placeholder', defaultMessage: 'Search' },
   placeholderSignedIn: {
     id: 'search.search_or_paste',
-    defaultMessage: 'Search or paste URL',
+    defaultMessage: 'Search',
   },
 });
 

@@ -7,10 +7,10 @@ import classNames from 'classnames';
 
 import Overlay from 'react-overlays/Overlay';
 
-import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import AlternateEmailIcon from '@/material-icons/400-24px/mail.svg?react';
 import LockIcon from '@/material-icons/400-24px/lock.svg?react';
 import PublicIcon from '@/material-icons/400-24px/public.svg?react';
-import QuietTimeIcon from '@/material-icons/400-24px/quiet_time.svg?react';
+import QuietTimeIcon from '@/material-icons/400-24px/planet.svg?react';
 import { DropdownSelector } from 'mastodon/components/dropdown_selector';
 import { Icon }  from 'mastodon/components/icon';
 
@@ -35,7 +35,12 @@ class PrivacyDropdown extends PureComponent {
     noDirect: PropTypes.bool,
     container: PropTypes.func,
     disabled: PropTypes.bool,
+    hideLabel: PropTypes.bool,
     intl: PropTypes.object.isRequired,
+  };
+
+  static defaultProps = {
+    hideLabel: false,
   };
 
   state = {
@@ -89,7 +94,6 @@ class PrivacyDropdown extends PureComponent {
     const { intl: { formatMessage } } = this.props;
 
     this.options = [
-      { icon: 'globe', iconComponent: PublicIcon, value: 'public', text: formatMessage(messages.public_short), meta: formatMessage(messages.public_long) },
       { icon: 'unlock', iconComponent: QuietTimeIcon,  value: 'unlisted', text: formatMessage(messages.unlisted_short), meta: formatMessage(messages.unlisted_long), extra: formatMessage(messages.unlisted_extra) },
       { icon: 'lock', iconComponent: LockIcon, value: 'private', text: formatMessage(messages.private_short), meta: formatMessage(messages.private_long) },
     ];
@@ -132,7 +136,9 @@ class PrivacyDropdown extends PureComponent {
           className={classNames('dropdown-button', { active: open })}
         >
           <Icon id={valueOption.icon} icon={valueOption.iconComponent} />
-          <span className='dropdown-button__label'>{valueOption.text}</span>
+          {!this.props.hideLabel && (
+            <span className='dropdown-button__label'>{valueOption.text}</span>
+          )}
         </button>
 
         <Overlay show={open} offset={[5, 5]} placement={placement} flip target={this.findTarget} container={container} popperConfig={{ strategy: 'fixed', onFirstUpdate: this.handleOverlayEnter }}>

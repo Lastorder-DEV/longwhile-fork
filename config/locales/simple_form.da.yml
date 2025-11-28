@@ -222,7 +222,6 @@ da:
         otp_attempt: Tofaktorkode
         password: Adgangskode
         phrase: Nøgleord/-sætning
-        setting_advanced_layout: Aktivér avanceret webgrænseflade
         setting_aggregate_reblogs: Gruppér fremhævelser på tidslinjer
         setting_always_send_emails: Send altid e-mailnotifikationer
         setting_auto_play_gif: Autoafspil animerede GIF'er

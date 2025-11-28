@@ -221,7 +221,6 @@ fr:
         otp_attempt: Code d’authentification à deux facteurs
         password: Mot de passe
         phrase: Mot-clé ou phrase
-        setting_advanced_layout: Activer l’interface Web avancée
         setting_aggregate_reblogs: Grouper les partages dans les fils d’actualités
         setting_always_send_emails: Toujours envoyer les notifications par courriel
         setting_auto_play_gif: Lire automatiquement les GIFs animés

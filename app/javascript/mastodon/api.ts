@@ -27,14 +27,46 @@ const setCSRFHeader = () => {
     'meta[name=csrf-token]',
   );
 
-  if (csrfToken) {
+  if (csrfToken?.content) {
     csrfHeader['X-CSRF-Token'] = csrfToken.content;
   }
 };
 
+export const updateCSRFToken = (token: string) => {
+  csrfHeader['X-CSRF-Token'] = token;
+  let meta = document.querySelector<HTMLMetaElement>('meta[name=csrf-token]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'csrf-token';
+    document.head.appendChild(meta);
+  }
+  meta.content = token;
+};
+
 void ready(setCSRFHeader);
 
-const authorizationTokenFromInitialState = (): RawAxiosRequestHeaders => {
+let activeAccountToken: string | null = null;
+
+export const setActiveAccountToken = (token: string | null) => {
+  activeAccountToken = token;
+};
+
+export const currentAuthorizationToken = () =>
+  activeAccountToken ?? getAccessToken() ?? null;
+
+const authorizationTokenFromInitialState = (
+  fallback = true,
+): RawAxiosRequestHeaders => {
+  if (activeAccountToken && activeAccountToken.length > 0) {
+    return {
+      Authorization: `Bearer ${activeAccountToken}`,
+    };
+  }
+
+  if (!fallback) {
+    return {};
+  }
+
   const accessToken = getAccessToken();
 
   if (!accessToken) return {};

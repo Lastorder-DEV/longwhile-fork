@@ -13,7 +13,7 @@ module HomeHelper
         section = if account.nil?
                     content_tag(:div, class: 'account__display-name') do
                       content_tag(:div, class: 'account__avatar-wrapper') do
-                        image_tag(full_asset_url('avatars/original/missing.png', skip_pipeline: true), class: 'account__avatar')
+                        image_tag(full_asset_url('avatars/original/i_missing.png', skip_pipeline: true), class: 'account__avatar')
                       end +
                         content_tag(:span, class: 'display-name') do
                           content_tag(:strong, t('about.contact_missing')) +

@@ -66,7 +66,7 @@ sco:
         bootstrap_timeline_accounts: Thir accoonts wull get preenit tae the tap o new uisers' follae recommendations.
         closed_registrations_message: Displayit whan sign-ups is shut
         custom_css: Ye kin pit custom styles on tae the web version o Mastodon.
-        mascot: Owerrides the illustration in the advanced web interface.
+        mascot: Owerrides the illustration in the wab interface.
         profile_directory: The profile directory lists aw uisers thit hae opted-in fir tae be discoverable.
         require_invite_text: Whan sign-ups require approval bi haun, mak the “Hou dae ye want tae jyne?” text input mandatory raither nor optional
         site_contact_email: Hou fowk kin reach ye fir legal or support inquiries.
@@ -170,7 +170,6 @@ sco:
         otp_attempt: Twa-factor code
         password: Passwird
         phrase: Keywird or phrase
-        setting_advanced_layout: Turn on advanced web interface
         setting_aggregate_reblogs: Group heezes in timelines
         setting_always_send_emails: Aye sen email notifications
         setting_auto_play_gif: Auto-pley animatit GIFs

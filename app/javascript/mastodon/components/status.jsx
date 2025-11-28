@@ -11,7 +11,7 @@ import ImmutablePureComponent from 'react-immutable-pure-component';
 
 import { HotKeys } from 'react-hotkeys';
 
-import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import AlternateEmailIcon from '@/material-icons/400-24px/mail.svg?react';
 import PushPinIcon from '@/material-icons/400-24px/push_pin.svg?react';
 import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
 import { ContentWarning } from 'mastodon/components/content_warning';

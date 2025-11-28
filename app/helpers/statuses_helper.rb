@@ -3,9 +3,9 @@
 module StatusesHelper
   VISIBLITY_ICONS = {
     public: 'globe',
-    unlisted: 'lock_open',
+    unlisted: 'cloud',
     private: 'lock',
-    direct: 'alternate_email',
+    direct: 'mail',
   }.freeze
 
   def nothing_here(extra_classes = '')

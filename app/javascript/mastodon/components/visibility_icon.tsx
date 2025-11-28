@@ -1,9 +1,9 @@
 import { defineMessages, useIntl } from 'react-intl';
 
-import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
-import LockIcon from '@/material-icons/400-24px/lock.svg?react';
+import AlternateEmailIcon from '@/material-icons/400-24px/mail-fill.svg?react';
+import LockIcon from '@/material-icons/400-24px/lock-fill.svg?react';
 import PublicIcon from '@/material-icons/400-24px/public.svg?react';
-import QuietTimeIcon from '@/material-icons/400-24px/quiet_time.svg?react';
+import QuietTimeIcon from '@/material-icons/400-24px/planet-fill.svg?react';
 import type { StatusVisibility } from 'mastodon/models/status';
 
 import { Icon } from './icon';

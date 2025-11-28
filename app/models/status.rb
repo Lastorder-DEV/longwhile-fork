@@ -4,7 +4,7 @@
 #
 # Table name: statuses
 #
-#  id                           :bigint(8)        not null, primary key
+#  id                           :bigint(8)        not nuldistributable? l, primary key
 #  uri                          :string
 #  text                         :text             default(""), not null
 #  created_at                   :datetime         not null
@@ -462,19 +462,17 @@ class Status < ApplicationRecord
   end
 
   def increment_counter_caches
-    return if direct_visibility?
-
     account&.increment_count!(:statuses_count)
     reblog&.increment_count!(:reblogs_count) if reblog?
-    thread&.increment_count!(:replies_count) if in_reply_to_id.present? && distributable?
+    thread&.increment_count!(:replies_count) if in_reply_to_id.present?
   end
 
   def decrement_counter_caches
-    return if direct_visibility? || new_record?
+    return if new_record?
 
     account&.decrement_count!(:statuses_count)
     reblog&.decrement_count!(:reblogs_count) if reblog?
-    thread&.decrement_count!(:replies_count) if in_reply_to_id.present? && distributable?
+    thread&.decrement_count!(:replies_count) if in_reply_to_id.present?
   end
 
   def trigger_create_webhooks

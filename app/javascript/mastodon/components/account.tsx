@@ -193,7 +193,7 @@ export const Account: React.FC<{
   if (account?.mute_expires_at) {
     muteTimeRemaining = (
       <>
-        · <RelativeTimestamp timestamp={account.mute_expires_at} futureDate />
+        Â· <RelativeTimestamp timestamp={account.mute_expires_at} futureDate />
       </>
     );
   }
@@ -241,12 +241,16 @@ export const Account: React.FC<{
                 )}
               </div>
             )}
+
+            {/* 바이오를 account__contents 안으로 이동 */}
+            {account?.note && (
+              <div className="account__bio" dangerouslySetInnerHTML={{ __html: account.note }} />
+            )}
           </div>
         </Link>
 
         {!minimal && (
           <div className='account__relationship'>
-            {dropdown}
             {button}
           </div>
         )}

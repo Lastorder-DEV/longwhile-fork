@@ -11,22 +11,40 @@ import {
   selectSettingsNotificationsQuickFilterShow,
 } from './settings';
 
+/**
+ * Filters notifications based on the active filter type.
+ * Mentions and DMs ignore excludedTypes to always appear in their respective tabs.
+ */
 const filterNotificationsByAllowedTypes = (
   showFilterBar: boolean,
   allowedType: string,
   excludedTypes: string[],
   notifications: (NotificationGroup | NotificationGap)[],
 ) => {
+  // Always show all if no filter bar or "all" is selected
   if (!showFilterBar || allowedType === 'all') {
-    // used if user changed the notification settings after loading the notifications from the server
-    // otherwise a list of notifications will come pre-filtered from the backend
-    // we need to turn it off for FilterBar in order not to block ourselves from seeing a specific category
     return notifications.filter(
       (item) => item.type === 'gap' || !excludedTypes.includes(item.type),
     );
   }
+
+  // Mentions tab: show mentions that are NOT direct (ignore excludedTypes)
+  if (allowedType === 'noti_mention') {
+    return notifications.filter(
+      (g) => g.type === 'gap' || (g.type === 'mention' && g.visibility !== 'direct'),
+    );
+  }
+
+  // DM tab: show mentions that ARE direct (ignore excludedTypes)
+  if (allowedType === 'noti_dm') {
+    return notifications.filter(
+      (g) => g.type === 'gap' || (g.type === 'mention' && g.visibility === 'direct'),
+    );
+  }
+
+  // Other types: apply excludedTypes normally
   return notifications.filter(
-    (item) => item.type === 'gap' || allowedType === item.type,
+    (item) => item.type === 'gap' || (allowedType === item.type && !excludedTypes.includes(item.type)),
   );
 };
 
@@ -74,7 +92,6 @@ export const selectUnreadNotificationGroupsCount = createSelector(
   },
 );
 
-// Whether there is any unread notification according to the user-facing state
 export const selectAnyPendingNotification = createSelector(
   [
     (s: RootState) => s.notificationGroups.readMarkerId,

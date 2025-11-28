@@ -204,7 +204,6 @@ et:
         otp_attempt: Kaheastmeline kood
         password: Salasõna
         phrase: Võtmesõna või fraas
-        setting_advanced_layout: Aktiveeri kohandatud veebiliides
         setting_aggregate_reblogs: Grupeeri jagamised ajajoontel
         setting_always_send_emails: Edasta kõik teavitused meilile
         setting_auto_play_gif: Esita GIF-e automaatselt

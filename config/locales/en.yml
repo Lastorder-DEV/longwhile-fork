@@ -23,6 +23,20 @@ en:
     posts_tab_heading: Posts
     self_follow_error: Following your own account is not allowed
   admin:
+    direct_messages:
+      title: DM Management
+      sender: Sender
+      content: Content
+      created_at: Created at
+      search_placeholder: Search messages
+      batch_not_supported: Batch operations are not supported for direct messages
+      filters:
+        title: Filters
+        all: All
+      actions:
+        title: Actions
+        view_details: View details
+        view: View
     account_actions:
       action: Perform action
       already_silenced: This account has already been limited.
@@ -358,7 +372,7 @@ en:
       overwrite: Overwrite
       shortcode: Shortcode
       shortcode_hint: At least 2 characters, only alphanumeric characters and underscores
-      title: Custom emojis
+      title: DM Management
       uncategorized: Uncategorized
       unlist: Unlist
       unlisted: Unlisted
@@ -1141,8 +1155,6 @@ en:
     hint_html: If you want to move from another account to this one, here you can create an alias, which is required before you can proceed with moving followers from the old account to this one. This action by itself is <strong>harmless and reversible</strong>. <strong>The account migration is initiated from the old account</strong>.
     remove: Unlink alias
   appearance:
-    advanced_web_interface: Advanced web interface
-    advanced_web_interface_hint: 'If you want to make use of your entire screen width, the advanced web interface allows you to configure many different columns to see as much information at the same time as you want: Home, notifications, federated timeline, any number of lists and hashtags.'
     animations_and_accessibility: Animations and accessibility
     confirmation_dialogs: Confirmation dialogs
     discovery: Discovery
@@ -1922,10 +1934,10 @@ en:
     review_link: Review terms of service
     title: The terms of service of %{domain} are changing
   themes:
-    contrast: Mastodon (High contrast)
     default: Mastodon (Dark)
     mastodon-light: Mastodon (Light)
-    system: Automatic (use system theme)
+    mastodon-bird-ui-light: Twitter (Light)
+    mastodon-bird-ui-dark: Twitter (Dark)
   time:
     formats:
       default: "%b %d, %Y, %H:%M"
@@ -2099,11 +2111,3 @@ en:
     not_supported: This browser doesn't support security keys
     otp_required: To use security keys please enable two-factor authentication first.
     registered_on: Registered on %{date}
-  themes:
-     contrast: Mastodon (High contrast)
-     default: Mastodon Bird UI (Dark)
-     bird-ui: Mastodon Bird UI (DEPRECATED)
-     mastodon-bird-ui-light: Mastodon Bird UI (Light)
-     mastodon-bird-ui-contrast: Mastodon Bird UI (High contrast)
-     mastodon-light: Mastodon (Light)
-     mastodon-dark: Mastodon (Dark)

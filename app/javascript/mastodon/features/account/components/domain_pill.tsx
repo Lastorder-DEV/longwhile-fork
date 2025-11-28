@@ -6,7 +6,7 @@ import classNames from 'classnames';
 
 import Overlay from 'react-overlays/Overlay';
 
-import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import AlternateEmailIcon from '@/material-icons/400-24px/mail.svg?react';
 import BadgeIcon from '@/material-icons/400-24px/badge.svg?react';
 import GlobeIcon from '@/material-icons/400-24px/globe.svg?react';
 import { Icon } from 'mastodon/components/icon';

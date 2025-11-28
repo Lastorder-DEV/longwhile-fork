@@ -688,7 +688,9 @@ export const updateAccount = ({ displayName, note, avatar, header, discoverable,
   if (avatar) data.append('avatar', avatar);
   if (header) data.append('header', header);
   data.append('discoverable', discoverable);
-  data.append('indexable', indexable);
+  if (typeof indexable !== 'undefined') {
+    data.append('indexable', indexable);
+  }
 
   return api().patch('/api/v1/accounts/update_credentials', data).then(response => {
     dispatch(importFetchedAccount(response.data));

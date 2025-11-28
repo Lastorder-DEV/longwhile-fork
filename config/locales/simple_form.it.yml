@@ -225,7 +225,6 @@ it:
         otp_attempt: Codice due-fattori
         password: Password
         phrase: Parola chiave o frase
-        setting_advanced_layout: Abilita interfaccia web avanzata
         setting_aggregate_reblogs: Raggruppa condivisioni in timeline
         setting_always_send_emails: Manda sempre notifiche via email
         setting_auto_play_gif: Riproduci automaticamente le GIF animate

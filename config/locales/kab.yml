@@ -483,7 +483,6 @@ kab:
       new_trending_statuses:
         title: Tisuffaɣ mucaɛen
   appearance:
-    advanced_web_interface: Agrudem n web leqqayen
     discovery: Asnirem
     localization:
       body: Mastodon suqqlen-t-id yiwiziwen.

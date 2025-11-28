@@ -25,7 +25,7 @@ import BundleColumnError from './bundle_column_error';
 import { ColumnLoading } from './column_loading';
 import ComposePanel from './compose_panel';
 import DrawerLoading from './drawer_loading';
-import NavigationPanel from './navigation_panel';
+import NavigationPanel, { CollapsibleNavigationPanel } from './navigation_panel';
 
 const componentMap = {
   'COMPOSE': Compose,
@@ -43,14 +43,24 @@ const componentMap = {
 };
 
 const TabsBarPortal = () => {
-  const {setTabsBarElement} = useColumnsContext();
+  const { setTabsBarElement } = useColumnsContext();
 
-  const setRef = useCallback((element) => {
-    if(element)
-      setTabsBarElement(element);
-  }, [setTabsBarElement]);
+  const setRef = useCallback(
+    (element) => {
+      if (element) {
+        setTabsBarElement(element);
+      }
+    },
+    [setTabsBarElement],
+  );
 
-  return <div id='tabs-bar__portal' ref={setRef} />;
+  return (
+    <div className='tabs-bar'>
+      <div className='tabs-bar__title'>
+        <div id='tabs-bar__portal' ref={setRef} />
+      </div>
+    </div>
+  );
 };
 
 export default class ColumnsArea extends ImmutablePureComponent {
@@ -59,6 +69,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
     isModalOpen: PropTypes.bool.isRequired,
     singleColumn: PropTypes.bool,
     children: PropTypes.node,
+    layout: PropTypes.string.isRequired,
   };
 
   // Corresponds to (max-width: $no-gap-breakpoint - 1px) in SCSS
@@ -115,28 +126,41 @@ export default class ColumnsArea extends ImmutablePureComponent {
   };
 
   render () {
-    const { columns, children, singleColumn, isModalOpen } = this.props;
+    const { columns, children, singleColumn, isModalOpen, layout } = this.props;
     const { renderComposePanel } = this.state;
+    const isMobileLayout = layout === 'mobile';
+    const showComposePanel = renderComposePanel && !isMobileLayout;
+    const showStaticNavigation = !isMobileLayout;
+    const showNavigationExtras = !showComposePanel;
 
     if (singleColumn) {
       return (
         <div className='columns-area__panels'>
-          <div className='columns-area__panels__pane columns-area__panels__pane--compositional'>
-            <div className='columns-area__panels__pane__inner'>
-              {renderComposePanel && <ComposePanel />}
+          {showComposePanel && (
+            <div className='columns-area__panels__pane columns-area__panels__pane--compositional'>
+              <div className='columns-area__panels__pane__inner'>
+                <ComposePanel />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className='columns-area__panels__main'>
             <div className='tabs-bar__wrapper'><TabsBarPortal /></div>
             <div className='columns-area columns-area--mobile'>{children}</div>
           </div>
 
-          <div className='columns-area__panels__pane columns-area__panels__pane--start columns-area__panels__pane--navigational'>
-            <div className='columns-area__panels__pane__inner'>
-              <NavigationPanel />
+          {showStaticNavigation ? (
+            <div className='columns-area__panels__pane columns-area__panels__pane--start columns-area__panels__pane--navigational'>
+              <div className='columns-area__panels__pane__inner'>
+                <NavigationPanel
+                  renderSearch={showNavigationExtras}
+                  renderComposeButton={showNavigationExtras}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <CollapsibleNavigationPanel />
+          )}
         </div>
       );
     }

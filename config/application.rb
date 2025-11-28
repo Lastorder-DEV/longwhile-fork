@@ -75,6 +75,9 @@ module Mastodon
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    config.time_zone = 'Asia/Seoul'
+    config.i18n.default_locale = :ko
+    config.i18n.fallbacks = true
 
     # config.paths.add File.join('app', 'api'), glob: File.join('**', '*.rb')
     # config.autoload_paths += Dir[Rails.root.join('app', 'api', '*')]
@@ -103,6 +106,18 @@ module Mastodon
         require_relative '../lib/paperclip/lazy_thumbnail'
       end
     end
+
+    config.paperclip_defaults = {
+      default_url: lambda { |attachment|
+        if attachment.name == :avatar
+          '/avatars/:style/i_missing.png'
+        elsif attachment.name == :header
+          '/headers/:style/h_missing.png'
+        else
+          '/avatars/:style/i_missing.png'
+        end
+      }
+    }
 
     config.x.captcha = config_for(:captcha)
     config.x.mastodon = config_for(:mastodon)

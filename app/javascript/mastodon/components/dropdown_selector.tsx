@@ -169,15 +169,6 @@ export const DropdownSelector: React.FC<Props> = ({
             <strong>{item.text}</strong>
             {item.meta}
           </div>
-
-          {item.extra && (
-            <div
-              className={`${classNamePrefix}__option__additional`}
-              title={item.extra}
-            >
-              <Icon id='info-circle' icon={InfoIcon} />
-            </div>
-          )}
         </li>
       ))}
     </ul>

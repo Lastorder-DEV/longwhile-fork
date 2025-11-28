@@ -173,7 +173,6 @@ id:
         otp_attempt: Kode dua-faktor
         password: Kata sandi
         phrase: Kata kunci atau frasa
-        setting_advanced_layout: Aktifkan antar muka web mahir
         setting_aggregate_reblogs: Boost grup di linimasa
         setting_always_send_emails: Selalu kirim notifikasi email
         setting_auto_play_gif: Mainkan otomatis animasi GIF

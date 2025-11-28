@@ -29,8 +29,9 @@ namespace :mastodon do
 
       prompt.say "\n"
 
+      # Single user mode 안내만 출력하고, 기본값으로 비활성화
       prompt.say('Single user mode disables registrations and redirects the landing page to your public profile.')
-      env['SINGLE_USER_MODE'] = prompt.yes?('Do you want to enable single user mode?', default: false)
+      env['SINGLE_USER_MODE'] = false
 
       %w(SECRET_KEY_BASE OTP_SECRET).each do |key|
         env[key] = SecureRandom.hex(64)
@@ -52,118 +53,76 @@ namespace :mastodon do
 
       prompt.say "\n"
 
-      using_docker        = prompt.yes?('Are you using Docker to run Mastodon?')
+      # Docker는 사용하지 않는 고정값
+      using_docker        = false
       db_connection_works = false
 
       prompt.say "\n"
 
-      loop do
-        env['DB_HOST'] = prompt.ask('PostgreSQL host:') do |q|
-          q.required true
-          q.default using_docker ? 'db' : '/var/run/postgresql'
-          q.modify :strip
-        end
+      # PostgreSQL 설정: 호스트/포트/DB/유저는 고정, 비밀번호만 입력
+      env['DB_HOST'] = '/var/run/postgresql'
+      env['DB_PORT'] = 5432
+      env['DB_NAME'] = 'mastodon_production'
+      env['DB_USER'] = 'mastodon'
 
-        env['DB_PORT'] = prompt.ask('PostgreSQL port:') do |q|
-          q.required true
-          q.default 5432
-          q.convert :int
-        end
+      env['DB_PASS'] = prompt.ask('Password of PostgreSQL user:') do |q|
+        q.echo false
+      end
 
-        env['DB_NAME'] = prompt.ask('Name of PostgreSQL database:') do |q|
-          q.required true
-          q.default using_docker ? 'postgres' : 'mastodon_production'
-          q.modify :strip
-        end
+      # The chosen database may not exist yet. Connect to default database
+      # to avoid "database does not exist" error.
+      db_options = {
+        adapter: :postgresql,
+        database: 'postgres',
+        host: env['DB_HOST'],
+        port: env['DB_PORT'],
+        user: env['DB_USER'],
+        password: env['DB_PASS'],
+      }
 
-        env['DB_USER'] = prompt.ask('Name of PostgreSQL user:') do |q|
-          q.required true
-          q.default using_docker ? 'postgres' : 'mastodon'
-          q.modify :strip
-        end
-
-        env['DB_PASS'] = prompt.ask('Password of PostgreSQL user:') do |q|
-          q.echo false
-        end
-
-        # The chosen database may not exist yet. Connect to default database
-        # to avoid "database does not exist" error.
-        db_options = {
-          adapter: :postgresql,
-          database: 'postgres',
-          host: env['DB_HOST'],
-          port: env['DB_PORT'],
-          user: env['DB_USER'],
-          password: env['DB_PASS'],
-        }
-
-        begin
-          ActiveRecord::Base.establish_connection(db_options)
-          ActiveRecord::Base.connection
-          prompt.ok 'Database configuration works! 🎆'
-          db_connection_works = true
-          break
-        rescue => e
-          prompt.error 'Database connection could not be established with this configuration, try again.'
-          prompt.error e.message
-          unless prompt.yes?('Try again?')
-            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
-
-            errors << 'Database connection could not be established.'
-            break
-          end
-        end
+      begin
+        ActiveRecord::Base.establish_connection(db_options)
+        ActiveRecord::Base.connection
+        prompt.ok 'Database configuration works! 🎆'
+        db_connection_works = true
+      rescue => e
+        prompt.error 'Database connection could not be established with this configuration.'
+        prompt.error e.message
+        errors << 'Database connection could not be established.'
       end
 
       prompt.say "\n"
 
-      loop do
-        env['REDIS_HOST'] = prompt.ask('Redis host:') do |q|
-          q.required true
-          q.default using_docker ? 'redis' : 'localhost'
-          q.modify :strip
-        end
+      # Redis 설정: 호스트/포트는 고정, 비밀번호만 입력
+      env['REDIS_HOST'] = 'localhost'
+      env['REDIS_PORT'] = 6379
+      env['REDIS_PASSWORD'] = prompt.ask('Redis password:') do |q|
+        q.required false
+        q.default nil
+        q.modify :strip
+      end
 
-        env['REDIS_PORT'] = prompt.ask('Redis port:') do |q|
-          q.required true
-          q.default 6379
-          q.convert :int
-        end
+      redis_options = {
+        host: env['REDIS_HOST'],
+        port: env['REDIS_PORT'],
+        password: env['REDIS_PASSWORD'],
+        driver: :hiredis,
+      }
 
-        env['REDIS_PASSWORD'] = prompt.ask('Redis password:') do |q|
-          q.required false
-          q.default nil
-          q.modify :strip
-        end
-
-        redis_options = {
-          host: env['REDIS_HOST'],
-          port: env['REDIS_PORT'],
-          password: env['REDIS_PASSWORD'],
-          driver: :hiredis,
-        }
-
-        begin
-          redis = Redis.new(redis_options)
-          redis.ping
-          prompt.ok 'Redis configuration works! 🎆'
-          break
-        rescue => e
-          prompt.error 'Redis connection could not be established with this configuration, try again.'
-          prompt.error e.message
-
-          unless prompt.yes?('Try again?')
-            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
-
-            errors << 'Redis connection could not be established.'
-            break
-          end
-        end
+      begin
+        redis = Redis.new(redis_options)
+        redis.ping
+        prompt.ok 'Redis configuration works! 🎆'
+      rescue => e
+        prompt.error 'Redis connection could not be established with this configuration.'
+        prompt.error e.message
+        errors << 'Redis connection could not be established.'
       end
 
       prompt.say "\n"
 
-      if prompt.yes?('Do you want to store uploaded files on the cloud?', default: false)
+      # 업로드 파일은 로컬 저장소 사용 (클라우드 설정 스킵)
+      if false
         case prompt.select('Provider', ['DigitalOcean Spaces', 'Amazon S3', 'Wasabi', 'Minio', 'Google Cloud Storage', 'Storj DCS'])
         when 'DigitalOcean Spaces'
           env['S3_ENABLED'] = 'true'
@@ -356,109 +315,93 @@ namespace :mastodon do
 
       prompt.say "\n"
 
-      loop do
-        if prompt.yes?('Do you want to send e-mails from localhost?', default: false)
-          env['SMTP_SERVER'] = 'localhost'
-          env['SMTP_PORT'] = 25
-          env['SMTP_AUTH_METHOD'] = 'none'
-          env['SMTP_OPENSSL_VERIFY_MODE'] = 'none'
-          env['SMTP_ENABLE_STARTTLS'] = 'auto'
+      # SMTP는 항상 외부 서버 사용, 서버/포트/인증방식 등은 고정
+      env['SMTP_SERVER'] = 'smtp.mailgun.org'
+      env['SMTP_PORT'] = 587
+      env['SMTP_AUTH_METHOD'] = 'plain'
+      env['SMTP_OPENSSL_VERIFY_MODE'] = 'peer'
+      env['SMTP_ENABLE_STARTTLS'] = 'auto'
+
+      env['SMTP_LOGIN'] = prompt.ask('SMTP username:') do |q|
+        q.modify :strip
+      end
+
+      env['SMTP_PASSWORD'] = prompt.ask('SMTP password:') do |q|
+        q.echo false
+      end
+
+      env['SMTP_FROM_ADDRESS'] = prompt.ask('E-mail address to send e-mails "from":') do |q|
+        q.required true
+        q.default "Mastodon <notifications@#{env['LOCAL_DOMAIN']}>"
+        q.modify :strip
+      end
+
+      # 테스트 메일은 항상 한 번 보내고, 수신 주소는 고정
+      send_to = 'eunseo5207@gmail.com'
+
+      begin
+        enable_starttls = nil
+        enable_starttls_auto = nil
+
+        case env['SMTP_ENABLE_STARTTLS']
+        when 'always'
+          enable_starttls = true
+        when 'never'
+          enable_starttls = false
+        when 'auto'
+          enable_starttls_auto = true
         else
-          env['SMTP_SERVER'] = prompt.ask('SMTP server:') do |q|
-            q.required true
-            q.default 'smtp.mailgun.org'
-            q.modify :strip
-          end
-
-          env['SMTP_PORT'] = prompt.ask('SMTP port:') do |q|
-            q.required true
-            q.default 587
-            q.convert :int
-          end
-
-          env['SMTP_LOGIN'] = prompt.ask('SMTP username:') do |q|
-            q.modify :strip
-          end
-
-          env['SMTP_PASSWORD'] = prompt.ask('SMTP password:') do |q|
-            q.echo false
-          end
-
-          env['SMTP_AUTH_METHOD'] = prompt.ask('SMTP authentication:') do |q|
-            q.required
-            q.default 'plain'
-            q.modify :strip
-          end
-
-          env['SMTP_OPENSSL_VERIFY_MODE'] = prompt.select('SMTP OpenSSL verify mode:', %w(none peer client_once fail_if_no_peer_cert))
-
-          env['SMTP_ENABLE_STARTTLS'] = prompt.select('Enable STARTTLS:', %w(auto always never))
+          enable_starttls_auto = env['SMTP_ENABLE_STARTTLS_AUTO'] != 'false'
         end
 
-        env['SMTP_FROM_ADDRESS'] = prompt.ask('E-mail address to send e-mails "from":') do |q|
-          q.required true
-          q.default "Mastodon <notifications@#{env['LOCAL_DOMAIN']}>"
-          q.modify :strip
-        end
+        ActionMailer::Base.smtp_settings = {
+          port: env['SMTP_PORT'],
+          address: env['SMTP_SERVER'],
+          user_name: env['SMTP_LOGIN'].presence,
+          password: env['SMTP_PASSWORD'].presence,
+          domain: env['LOCAL_DOMAIN'],
+          authentication: env['SMTP_AUTH_METHOD'] == 'none' ? nil : env['SMTP_AUTH_METHOD'] || :plain,
+          openssl_verify_mode: env['SMTP_OPENSSL_VERIFY_MODE'],
+          enable_starttls: enable_starttls,
+          enable_starttls_auto: enable_starttls_auto,
+        }
 
-        break unless prompt.yes?('Send a test e-mail with this configuration right now?')
+        ActionMailer::Base.default_options = {
+          from: env['SMTP_FROM_ADDRESS'],
+        }
 
-        send_to = prompt.ask('Send test e-mail to:', required: true)
-
-        begin
-          enable_starttls = nil
-          enable_starttls_auto = nil
-
-          case env['SMTP_ENABLE_STARTTLS']
-          when 'always'
-            enable_starttls = true
-          when 'never'
-            enable_starttls = false
-          when 'auto'
-            enable_starttls_auto = true
-          else
-            enable_starttls_auto = env['SMTP_ENABLE_STARTTLS_AUTO'] != 'false'
-          end
-
-          ActionMailer::Base.smtp_settings = {
-            port: env['SMTP_PORT'],
-            address: env['SMTP_SERVER'],
-            user_name: env['SMTP_LOGIN'].presence,
-            password: env['SMTP_PASSWORD'].presence,
-            domain: env['LOCAL_DOMAIN'],
-            authentication: env['SMTP_AUTH_METHOD'] == 'none' ? nil : env['SMTP_AUTH_METHOD'] || :plain,
-            openssl_verify_mode: env['SMTP_OPENSSL_VERIFY_MODE'],
-            enable_starttls: enable_starttls,
-            enable_starttls_auto: enable_starttls_auto,
-          }
-
-          ActionMailer::Base.default_options = {
-            from: env['SMTP_FROM_ADDRESS'],
-          }
-
-          mail = ActionMailer::Base.new.mail(
-            to: send_to,
-            subject: 'Test', # rubocop:disable Rails/I18nLocaleTexts
-            body: 'Mastodon SMTP configuration works!'
-          )
-          mail.deliver
-          break
-        rescue => e
-          prompt.error 'E-mail could not be sent with this configuration, try again.'
-          prompt.error e.message
-
-          unless prompt.yes?('Try again?')
-            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
-
-            errors << 'E-email was not sent successfully.'
-            break
-          end
-        end
+        mail = ActionMailer::Base.new.mail(
+          to: send_to,
+          subject: 'Test', # rubocop:disable Rails/I18nLocaleTexts
+          body: 'Mastodon SMTP configuration works!'
+        )
+        mail.deliver
+      rescue => e
+        prompt.error 'E-mail could not be sent with this configuration.'
+        prompt.error e.message
+        errors << 'E-email was not sent successfully.'
       end
 
       prompt.say "\n"
 
-      env['UPDATE_CHECK_URL'] = '' unless prompt.yes?('Do you want Mastodon to periodically check for important updates and notify you? (Recommended)', default: true)
+      # 업데이트 체크는 항상 비활성화
+      env['UPDATE_CHECK_URL'] = ''
+
+      # Multi-account 기본값
+      env['MA_MULTI_ACCOUNT_REFRESH_FLOW'] ||= 'true'
+      env['MA_MULTI_ACCOUNT_RETAIN_TOKENS'] ||= 'true'
+      env['MA_ROLLOUT_PERCENTAGE'] ||= '100'
+
+      # 도메인 기반 multi-account redirect URI 자동 설정
+      env['MA_MULTI_ACCOUNT_REDIRECT_URI'] ||= "https://#{env['LOCAL_DOMAIN']}/multi_accounts/callback"
+
+      env['AUTHORIZED_FETCH'] ||= 'true'
+      env['LIMITED_FEDERATION_MODE'] ||= 'true'
+      env['DISALLOW_UNAUTHENTICATED_API_ACCESS'] ||= 'true'
+      env['THROTTLE_API_REQUESTS_PER_PERIOD'] ||= '3000'
+      env['THROTTLE_API_PERIOD'] ||= '300'
+      env['BOT_THROTTLE_API_REQUESTS_PER_PERIOD'] ||= '5000'
+      env['BOT_THROTTLE_API_PERIOD'] ||= '300'
 
       prompt.say "\n"
       prompt.say 'This configuration will be written to .env.production'
@@ -487,17 +430,16 @@ namespace :mastodon do
         end
 
         prompt.say "\n"
-        prompt.say 'Now that configuration is saved, the database schema must be loaded.'
-        prompt.warn 'If the database already exists, this will erase its contents.'
+        prompt.say 'Now that configuration is saved, the database will be prepared (create if missing, then migrate).'
 
         if prompt.yes?('Prepare the database now?')
-          prompt.say 'Running `RAILS_ENV=production rails db:setup` ...'
+          prompt.say 'Running `RAILS_ENV=production rails db:prepare` ...'
           prompt.say "\n\n"
 
-          if system(env.transform_values(&:to_s).merge({ 'RAILS_ENV' => 'production', 'SAFETY_ASSURED' => '1' }), 'rails db:setup')
-            prompt.ok 'Done!'
+          if system(env.transform_values(&:to_s).merge({ 'RAILS_ENV' => 'production', 'SAFETY_ASSURED' => '1' }), 'rails db:prepare')
+            prompt.ok 'Database prepared successfully.'
           else
-            prompt.error 'That failed! Perhaps your configuration is not right'
+            prompt.error 'Database preparation (`rails db:prepare`) did not complete successfully. Please review the output above.'
             errors << 'Preparing the database failed'
           end
         end
@@ -521,6 +463,18 @@ namespace :mastodon do
         end
 
         prompt.say "\n"
+
+        # Multi-account OAuth client 자동 설정
+        if db_connection_works && prompt.yes?('Do you want to automatically configure the multi-account OAuth client?', default: true)
+          begin
+            ensure_multi_account_client!(env, prompt)
+          rescue => e
+            prompt.error 'Failed to set up multi-account OAuth client automatically.'
+            prompt.error e.message
+            errors << 'Multi-account OAuth client setup failed.'
+          end
+        end
+
         if errors.any?
           prompt.warn 'Your Mastodon server is set up, but there were some errors along the way, you may have to fix them:'
           errors.each { |error| prompt.warn "- #{error}" }
@@ -539,13 +493,14 @@ namespace :mastodon do
 
           username = prompt.ask('Username:') do |q|
             q.required true
-            q.default 'admin'
+            q.default 'longwhile'
             q.validate(/\A[a-z0-9_]+\z/i)
             q.modify :strip
           end
 
           email = prompt.ask('E-mail:') do |q|
             q.required true
+            q.default 'example@gmail.com'
             q.modify :strip
           end
 
@@ -600,6 +555,80 @@ namespace :mastodon do
         string << "# using docker-compose or not.\n\n"
       end
     end
+  end
+
+  # Multi-account OAuth 클라이언트를 생성하고 .env.production에 ID/SECRET을 추가
+  def ensure_multi_account_client!(env, prompt)
+    # ENV에 현재 설정을 반영
+    env.each_pair do |key, value|
+      ENV[key] = value.to_s
+    end
+
+    # Rails 환경 로드 (initialized? 체크로 Zeitwerk 에러 방지)
+    unless defined?(Rails) && Rails.application&.initialized?
+      require_relative '../../config/environment'
+    end
+    disable_log_stdout!
+
+    # env 해시에서 직접 config 업데이트 (이미 Rails가 로드된 경우 ENV 변경이 반영되지 않으므로)
+    Rails.configuration.x.multi_account[:redirect_uri] = env['MA_MULTI_ACCOUNT_REDIRECT_URI'] if env['MA_MULTI_ACCOUNT_REDIRECT_URI'].present?
+    Rails.configuration.x.multi_account[:client_id] = env['MA_MULTI_ACCOUNT_CLIENT_ID'] if env['MA_MULTI_ACCOUNT_CLIENT_ID'].present?
+    Rails.configuration.x.multi_account[:client_secret] = env['MA_MULTI_ACCOUNT_CLIENT_SECRET'] if env['MA_MULTI_ACCOUNT_CLIENT_SECRET'].present?
+
+    config = Rails.configuration.x.multi_account
+
+    unless config[:redirect_uri].present?
+      prompt.error 'Multi-account redirect URI is missing; cannot create OAuth client.'
+      return
+    end
+
+    client_id = config[:client_id]
+    client_secret = config[:client_secret]
+
+    if client_id.blank? || client_secret.blank?
+      app = Doorkeeper::Application.create!(
+        name: 'Web',
+        redirect_uri: config[:redirect_uri],
+        scopes: 'read write follow push'
+      )
+
+      client_id = app.uid
+      client_secret = app.secret
+
+      prompt.ok "Created multi-account OAuth application (client_id=#{client_id})."
+    else
+      app = Doorkeeper::Application.find_or_initialize_by(uid: client_id)
+      app.name = 'Web'
+      app.redirect_uri = config[:redirect_uri]
+      app.scopes = 'read write follow push'
+      app.secret = client_secret if app.new_record?
+
+      if app.save
+        prompt.ok "Verified existing multi-account OAuth application (client_id=#{app.uid})."
+      else
+        raise "Failed to save multi-account client: #{app.errors.full_messages.join(', ')}"
+      end
+    end
+
+    # env 해시 및 Rails 설정 갱신
+    env['MA_MULTI_ACCOUNT_CLIENT_ID'] = client_id
+    env['MA_MULTI_ACCOUNT_CLIENT_SECRET'] = client_secret
+    Rails.configuration.x.multi_account[:client_id] = client_id
+    Rails.configuration.x.multi_account[:client_secret] = client_secret
+
+    # .env.production에 없는 경우에만 추가
+    env_path = Rails.root.join('.env.production')
+    contents = env_path.read
+
+    unless contents.match?(/^MA_MULTI_ACCOUNT_CLIENT_ID=/)
+      contents << "\nMA_MULTI_ACCOUNT_CLIENT_ID=#{dotenv_escape(client_id)}"
+    end
+
+    unless contents.match?(/^MA_MULTI_ACCOUNT_CLIENT_SECRET=/)
+      contents << "\nMA_MULTI_ACCOUNT_CLIENT_SECRET=#{dotenv_escape(client_secret)}"
+    end
+
+    env_path.write("#{contents}\n")
   end
 end
 

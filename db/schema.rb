@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_28_104538) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_13_000100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -773,9 +773,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_28_104538) do
     t.bigint "resource_owner_id"
     t.datetime "last_used_at", precision: nil
     t.inet "last_used_ip"
+    t.boolean "multi_account", default: false, null: false
+    t.string "purpose", limit: 50
+    t.boolean "long_lived", default: false, null: false
     t.index ["refresh_token"], name: "index_oauth_access_tokens_on_refresh_token", unique: true, opclass: :text_pattern_ops, where: "(refresh_token IS NOT NULL)"
     t.index ["resource_owner_id"], name: "index_oauth_access_tokens_on_resource_owner_id", where: "(resource_owner_id IS NOT NULL)"
     t.index ["token"], name: "index_oauth_access_tokens_on_token", unique: true
+    t.index ["multi_account"], name: "index_oauth_access_tokens_on_multi_account"
+    t.index ["multi_account", "long_lived"], name: "index_oauth_access_tokens_on_multi_account_and_long_lived"
+    t.index ["purpose"], name: "index_oauth_access_tokens_on_purpose"
   end
 
   create_table "oauth_applications", force: :cascade do |t|

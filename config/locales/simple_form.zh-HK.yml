@@ -198,7 +198,6 @@ zh-HK:
         otp_attempt: 雙重認證碼
         password: 密碼
         phrase: 關鍵字或片語
-        setting_advanced_layout: 啟用進階網頁介面
         setting_aggregate_reblogs: 時間軸中的群組轉推
         setting_always_send_emails: 總是傳送電郵通知
         setting_auto_play_gif: 自動播放 GIF

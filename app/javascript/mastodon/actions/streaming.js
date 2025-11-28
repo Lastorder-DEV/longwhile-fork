@@ -148,10 +148,29 @@ async function refreshHomeTimelineAndNotification(dispatch) {
 }
 
 /**
- * @returns {function(): void}
+ * @type {Set<Function>}
  */
-export const connectUserStream = () =>
-  connectTimelineStream('home', 'user', {}, { fallback: refreshHomeTimelineAndNotification, fillGaps: fillHomeTimelineGaps });
+const managedConnections = new Set();
+
+/**
+ * @returns {(dispatch: Function, getState: Function) => () => void}
+ */
+export const connectUserStream = () => (dispatch, getState) => {
+  const disconnect = dispatch(
+    connectTimelineStream('home', 'user', {}, { fallback: refreshHomeTimelineAndNotification, fillGaps: fillHomeTimelineGaps }),
+  );
+
+  if (typeof disconnect === 'function') {
+    managedConnections.add(disconnect);
+  }
+
+  return () => {
+    if (typeof disconnect === 'function') {
+      managedConnections.delete(disconnect);
+      disconnect();
+    }
+  };
+};
 
 /**
  * @param {Object} options
@@ -192,3 +211,31 @@ export const connectDirectStream = () =>
  */
 export const connectListStream = listId =>
   connectTimelineStream(`list:${listId}`, 'list', { list: listId }, { fillGaps: () => fillListTimelineGaps(listId) });
+
+/**
+ * @returns {void}
+ */
+/**
+ * @returns {(dispatch: Function) => void}
+ */
+export const streamingDisconnectAll = () => () => {
+  Array.from(managedConnections).forEach((disconnect) => {
+    try {
+      disconnect();
+    } catch (error) {
+      console.error('Failed to disconnect stream:', error);
+    }
+    managedConnections.delete(disconnect);
+  });
+};
+
+/**
+ * @returns {function(): void}
+ */
+/**
+ * @returns {(dispatch: Function, getState: Function) => () => void}
+ */
+export const streamingConnectAll = () => (dispatch, getState) => {
+  dispatch(streamingDisconnectAll());
+  return dispatch(connectUserStream());
+};

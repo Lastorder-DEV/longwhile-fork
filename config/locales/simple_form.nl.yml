@@ -225,7 +225,6 @@ nl:
         otp_attempt: Tweestaps-toegangscode
         password: Wachtwoord
         phrase: Trefwoord of zinsdeel
-        setting_advanced_layout: Geavanceerde webomgeving inschakelen
         setting_aggregate_reblogs: Boosts in tijdlijnen groeperen
         setting_always_send_emails: Altijd e-mailmeldingen verzenden
         setting_auto_play_gif: Geanimeerde GIF's automatisch afspelen

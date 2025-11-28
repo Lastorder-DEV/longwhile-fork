@@ -3,6 +3,7 @@
 class Admin::StatusFilter
   KEYS = %i(
     media
+    direct
     report_id
   ).freeze
 
@@ -16,7 +17,7 @@ class Admin::StatusFilter
   end
 
   def results
-    scope = @account.statuses.distributable_visibility
+    scope = @account.statuses
 
     params.each do |key, value|
       next if IGNORED_PARAMS.include?(key.to_s)
@@ -32,7 +33,9 @@ class Admin::StatusFilter
   def scope_for(key, _value)
     case key.to_s
     when 'media'
-      Status.joins(:media_attachments).merge(@account.media_attachments).group(:id).recent
+      Status.joins(:media_attachments).merge(@account.media_attachments.reorder(nil)).group(:id).reorder('statuses.id desc')
+    when 'direct'
+      Status.where(visibility: :direct).group(:id).reorder('statuses.id desc')
     else
       raise Mastodon::InvalidParameterError, "Unknown filter: #{key}"
     end

@@ -315,7 +315,6 @@
   "load_pending": "{count, plural, one {# nòu element} other {# nòu elements}}",
   "loading_indicator.label": "Cargament…",
   "navigation_bar.about": "A prepaus",
-  "navigation_bar.advanced_interface": "Dobrir l’interfàcia web avançada",
   "navigation_bar.blocks": "Personas blocadas",
   "navigation_bar.bookmarks": "Marcadors",
   "navigation_bar.community_timeline": "Flux public local",

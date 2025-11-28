@@ -408,7 +408,7 @@ const startServer = async () => {
       return 'user:notification';
     case '/api/v1/streaming/public':
       return onlyMedia ? 'public:media' : 'public';
-    case '/api/v1/streaming/public/local':
+    case '/api/v1/streaming/local':
       return onlyMedia ? 'public:local:media' : 'public:local';
     case '/api/v1/streaming/public/remote':
       return onlyMedia ? 'public:remote:media' : 'public:remote';

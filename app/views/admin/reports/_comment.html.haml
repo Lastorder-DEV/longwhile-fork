@@ -9,7 +9,7 @@
     - if report.account.local? && !report.account.instance_actor?
       = image_tag report.account.avatar.url, class: 'report-notes__item__avatar'
     - else
-      = image_tag(full_asset_url('avatars/original/missing.png', skip_pipeline: true), class: 'report-notes__item__avatar')
+      = image_tag(full_asset_url('avatars/original/i_missing.png', skip_pipeline: true), class: 'report-notes__item__avatar')
     .report-notes__item__header
       %span.username
         - if report.account.instance_actor?

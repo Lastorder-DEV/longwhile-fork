@@ -76,6 +76,14 @@ export function clearTimeline(timeline) {
   };
 }
 
+export const resetTimelineCaches =
+  (timelines = []) =>
+  (dispatch) => {
+    timelines.forEach((timelineId) => {
+      dispatch(clearTimeline(timelineId));
+    });
+  };
+
 const parseTags = (tags = {}, mode) => {
   return (tags[mode] || []).map((tag) => {
     return tag.value;

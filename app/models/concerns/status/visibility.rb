@@ -9,6 +9,7 @@ module Status::Visibility
          suffix: :visibility,
          validate: true
 
+    scope :public_visibility, -> { where(visibility: [:public, :unlisted]) }
     scope :distributable_visibility, -> { where(visibility: %i(public unlisted)) }
     scope :list_eligible_visibility, -> { where(visibility: %i(public unlisted private)) }
     scope :not_direct_visibility, -> { where.not(visibility: :direct) }

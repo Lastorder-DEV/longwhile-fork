@@ -224,7 +224,6 @@ zh-TW:
         otp_attempt: 兩階段驗證碼
         password: 密碼
         phrase: 關鍵字或片語
-        setting_advanced_layout: 啟用進階網頁介面
         setting_aggregate_reblogs: 於時間軸中不重複顯示轉嘟
         setting_always_send_emails: 總是發送電子郵件通知
         setting_auto_play_gif: 自動播放 GIF 動畫

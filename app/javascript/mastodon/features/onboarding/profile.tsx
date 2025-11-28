@@ -109,14 +109,14 @@ export const Profile: React.FC<{
     () =>
       avatar
         ? URL.createObjectURL(avatar)
-        : nullIfMissing(account?.avatar ?? 'missing.png'),
+        : nullIfMissing(account?.avatar ?? 'i_missing.png'),
     [avatar, account],
   );
   const headerPreview = useMemo(
     () =>
       header
         ? URL.createObjectURL(header)
-        : nullIfMissing(account?.header ?? 'missing.png'),
+        : nullIfMissing(account?.header ?? 'missing_h.png'),
     [header, account],
   );
 
@@ -130,7 +130,6 @@ export const Profile: React.FC<{
         avatar,
         header,
         discoverable,
-        indexable: discoverable,
       }),
     )
       .then(() => {

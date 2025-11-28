@@ -367,7 +367,11 @@ class User < ApplicationRecord
   def revoke_access!
     Doorkeeper::AccessGrant.by_resource_owner(self).touch_all(:revoked_at)
 
-    Doorkeeper::AccessToken.by_resource_owner(self).in_batches do |batch|
+    token_scope = Doorkeeper::AccessToken.by_resource_owner(self)
+    token_scope = token_scope.excluding_long_lived_refresh if token_scope.respond_to?(:excluding_long_lived_refresh)
+    token_scope = token_scope.non_multi_account if MultiAccountConfig.retain_tokens?
+
+    token_scope.in_batches do |batch|
       batch.touch_all(:revoked_at)
       Web::PushSubscription.where(access_token_id: batch).delete_all
 

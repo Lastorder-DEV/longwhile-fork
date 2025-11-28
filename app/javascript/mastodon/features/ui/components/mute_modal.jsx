@@ -8,7 +8,7 @@ import classNames from 'classnames';
 import { useDispatch } from 'react-redux';
 
 
-import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import AlternateEmailIcon from '@/material-icons/400-24px/mail.svg?react';
 import CampaignIcon from '@/material-icons/400-24px/campaign.svg?react';
 import ReplyIcon from '@/material-icons/400-24px/reply.svg?react';
 import VisibilityOffIcon from '@/material-icons/400-24px/visibility_off.svg?react';

@@ -518,10 +518,14 @@ class Status extends ImmutablePureComponent {
     }
   }
 
-  componentDidUpdate (prevProps) {
+  componentDidUpdate(prevProps) {
     const { status, ancestorsIds } = this.props;
 
-    if (status && (ancestorsIds.length > prevProps.ancestorsIds.length || prevProps.status?.get('id') !== status.get('id'))) {
+    // Only scroll when the router's statusId param actually changed,
+    // or when new ancestors were added (new replies loaded).
+    const statusIdChanged = this.props.params?.statusId !== prevProps.params?.statusId;
+
+    if (status && (ancestorsIds.length > prevProps.ancestorsIds.length || statusIdChanged)) {
       this._scrollStatusIntoView();
     }
   }
@@ -540,12 +544,14 @@ class Status extends ImmutablePureComponent {
       return false;
     }
 
-    // Scroll to focused post if it is loaded
-    if (this.statusNode) {
+    // Only scroll to focused post if navigating to a different statusId
+    const prevStatusId = prevRouterProps?.params?.statusId || prevRouterProps?.match?.params?.statusId;
+    const currStatusId = this.props.params?.statusId;
+
+    if (this.statusNode && currStatusId !== prevStatusId) {
       return [0, this.statusNode.offsetTop];
     }
 
-    // Do not scroll otherwise, `componentDidUpdate` will take care of that
     return false;
   };
 

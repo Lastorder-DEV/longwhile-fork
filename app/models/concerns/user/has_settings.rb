@@ -75,10 +75,6 @@ module User::HasSettings
     settings['show_application']
   end
 
-  def setting_advanced_layout
-    settings['web.advanced_layout']
-  end
-
   def setting_use_blurhash
     settings['web.use_blurhash']
   end

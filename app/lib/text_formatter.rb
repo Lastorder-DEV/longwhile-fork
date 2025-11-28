@@ -46,6 +46,9 @@ class TextFormatter
       end
     end
 
+    # 멘션/해시태그/링크 처리 후에 마크다운 적용
+    html = apply_simple_markdown(html)
+
     if multiline?
       MastodonOTELTracer.in_span('TextFormatter#to_s simple_format') do
         html = simple_format(html, {}, sanitize: false).delete("\n")
@@ -85,6 +88,25 @@ class TextFormatter
   end
 
   private
+
+  def apply_simple_markdown(html)
+    # ***텍스트*** -> <strong><em>텍스트</em></strong> (굵은 기울임꼴)
+    html = html.gsub(/\*\*\*([^\*\n<>]+)\*\*\*/, '<strong><em>\1</em></strong>')
+
+    # **텍스트** -> <strong>텍스트</strong> (굵게)
+    html = html.gsub(/\*\*([^\*\n<>]+)\*\*/, '<strong>\1</strong>')
+
+    # *텍스트* -> <em>텍스트</em> (기울임, HTML 태그 안은 제외)
+    html = html.gsub(/(?<!\*)\*([^\*\n<>]+)\*(?!\*)/, '<em>\1</em>')
+
+    # ~~~텍스트~~~ -> <del>텍스트</del> (취소선)
+    html = html.gsub(/~~~([^~\n<>]+)~~~/, '<del>\1</del>')
+
+    # Hair Space로 감싼 텍스트 -> 파란색 (#1d9bf0)
+    html = html.gsub(/\u200A([^\u200A\n<>]+)\u200A/, '<span style="color: #1d9bf0;">\1</span>')
+
+    html
+  end
 
   def rewrite
     entities.sort_by! do |entity|

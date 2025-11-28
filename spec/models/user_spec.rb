@@ -528,6 +528,55 @@ RSpec.describe User do
     end
   end
 
+  describe '#revoke_access!' do
+    subject(:user) { Fabricate(:user) }
+
+    let!(:multi_account_token) { Fabricate(:access_token, resource_owner_id: user.id, multi_account: true, revoked_at: nil) }
+    let!(:standard_token) { Fabricate(:access_token, resource_owner_id: user.id, revoked_at: nil) }
+    let!(:long_lived_refresh_token) do
+      Fabricate(:access_token,
+                resource_owner_id: user.id,
+                multi_account: true,
+                purpose: 'multi_account_refresh',
+                long_lived: true,
+                revoked_at: nil)
+    end
+    let(:redis_pipeline_stub) { instance_double(Redis::Namespace, publish: nil) }
+
+    before do
+      allow(redis).to receive(:pipelined).and_yield(redis_pipeline_stub)
+    end
+
+    context 'when multi-account retention is disabled' do
+      it 'revokes all access tokens' do
+        user.revoke_access!
+
+        expect(multi_account_token.reload.revoked_at).to be_present
+        expect(standard_token.reload.revoked_at).to be_present
+        expect(long_lived_refresh_token.reload.revoked_at).to be_nil
+        expect(redis_pipeline_stub).to have_received(:publish).with("timeline:access_token:#{multi_account_token.id}", Oj.dump(event: :kill))
+        expect(redis_pipeline_stub).to have_received(:publish).with("timeline:access_token:#{standard_token.id}", Oj.dump(event: :kill))
+      end
+    end
+
+    context 'when multi-account retention is enabled' do
+      before do
+        allow(MultiAccountConfig).to receive(:retain_tokens?).and_return(true)
+      end
+
+      it 'skips revoking multi-account tokens' do
+        user.revoke_access!
+
+        expect(multi_account_token.reload.revoked_at).to be_nil
+        expect(standard_token.reload.revoked_at).to be_present
+        expect(long_lived_refresh_token.reload.revoked_at).to be_nil
+        expect(redis_pipeline_stub).to have_received(:publish).with("timeline:access_token:#{standard_token.id}", Oj.dump(event: :kill))
+        expect(redis_pipeline_stub).not_to have_received(:publish).with("timeline:access_token:#{multi_account_token.id}", anything)
+        expect(redis_pipeline_stub).not_to have_received(:publish).with("timeline:access_token:#{long_lived_refresh_token.id}", anything)
+      end
+    end
+  end
+
   describe '#mark_email_as_confirmed!' do
     subject { user.mark_email_as_confirmed! }
 

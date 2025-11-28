@@ -24,6 +24,7 @@ interface BaseNotificationWithStatus<Type extends NotificationWithStatusType>
   extends BaseNotificationGroup {
   type: Type;
   statusId: string | undefined;
+  visibility?: 'public' | 'unlisted' | 'private' | 'direct'; // 👈 추가
 }
 
 interface BaseNotification<Type extends NotificationType>
@@ -139,9 +140,10 @@ export function createNotificationGroupFromJSON(
     case 'mention':
     case 'poll':
     case 'update': {
-      const { status_id: statusId, ...groupWithoutStatus } = group;
+      const { status_id: statusId, status_visibility, ...groupWithoutStatus } = group; // 👈 status_visibility 추가
       return {
         statusId: statusId ?? undefined,
+        visibility: status_visibility, // 👈 visibility 필드 추가
         sampleAccountIds,
         partial: false,
         ...groupWithoutStatus,
@@ -215,6 +217,8 @@ export function createNotificationGroupFromNotificationJSON(
         ...group,
         type: notification.type,
         statusId: notification.status?.id,
+        // 실시간 알림의 경우 status.visibility에서 가져옴
+        visibility: notification.status?.visibility as 'public' | 'unlisted' | 'private' | 'direct' | undefined,
       };
     case 'admin.report':
       return {

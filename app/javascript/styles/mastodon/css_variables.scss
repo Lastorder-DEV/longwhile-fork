@@ -9,7 +9,7 @@
     0 8px 10px -6px #{rgba($base-shadow-color, 0.25)};
   --modal-background-color: #{rgba(darken($ui-base-color, 8%), 0.7)};
   --modal-background-variant-color: #{rgba($ui-base-color, 0.7)};
-  --modal-border-color: #{lighten($ui-base-color, 4%)};
+  --modal-border-color: #{rgba(lighten($ui-base-color, 4%), 1)};
   --background-border-color: #{lighten($ui-base-color, 4%)};
   --background-filter: blur(10px) saturate(180%) contrast(75%) brightness(70%);
   --background-color: #{darken($ui-base-color, 8%)};
@@ -24,10 +24,11 @@
   --error-background-color: #{darken($error-red, 16%)};
   --error-active-background-color: #{darken($error-red, 12%)};
   --on-error-color: #fff;
-  --rich-text-container-color: rgba(87, 24, 60, 100%);
-  --rich-text-text-color: rgba(255, 175, 212, 100%);
-  --rich-text-decorations-color: rgba(128, 58, 95, 100%);
+  --rich-text-container-color: rgb(24, 64, 87);
+  --rich-text-text-color: rgb(175, 226, 255);
+  --rich-text-decorations-color: rgb(58, 98, 128);
   --input-placeholder-color: #{$dark-text-color};
-  --input-background-color: var(--surface-variant-background-color);
+  --input-background-color: rgb(14, 14, 16);
   --on-input-color: #{$secondary-text-color};
+  --color-column: transparent;
 }

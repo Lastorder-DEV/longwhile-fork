@@ -209,7 +209,6 @@ eu:
         otp_attempt: Bi faktoreetako kodea
         password: Pasahitza
         phrase: Hitz edo esaldi gakoa
-        setting_advanced_layout: Gaitu web interfaze aurreratua
         setting_aggregate_reblogs: Taldekatu bultzadak denbora-lerroetan
         setting_always_send_emails: Bidali beti eposta jakinarazpenak
         setting_auto_play_gif: Erreproduzitu GIF animatuak automatikoki

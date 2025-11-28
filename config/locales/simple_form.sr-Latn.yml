@@ -200,7 +200,6 @@ sr-Latn:
         otp_attempt: Dvofaktorski kod
         password: Lozinka
         phrase: Ključna reč ili fraza
-        setting_advanced_layout: Omogući napredno veb okruženje
         setting_aggregate_reblogs: Grupiši deljenja u vremenskim linijama
         setting_always_send_emails: Uvek šalji obaveštenja e-poštom
         setting_auto_play_gif: Automatski reprodukuj animirane GIF-ove

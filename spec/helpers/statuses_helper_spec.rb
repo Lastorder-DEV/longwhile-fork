@@ -53,7 +53,7 @@ RSpec.describe StatusesHelper do
       it 'returns the correct fa icon' do
         result = helper.visibility_icon(status)
 
-        expect(result).to match('lock_open')
+        expect(result).to match('cloud')
       end
     end
 
@@ -73,7 +73,7 @@ RSpec.describe StatusesHelper do
       it 'returns the correct fa icon' do
         result = helper.visibility_icon(status)
 
-        expect(result).to match('alternate_email')
+        expect(result).to match('mail')
       end
     end
   end

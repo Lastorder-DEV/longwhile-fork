@@ -221,7 +221,6 @@ ru:
         otp_attempt: Код из приложения-аутентификатора
         password: Пароль
         phrase: Слово или фраза
-        setting_advanced_layout: Включить многоколоночный интерфейс
         setting_aggregate_reblogs: Группировать продвижения в лентах
         setting_always_send_emails: Всегда отправлять уведомления по электронной почте
         setting_auto_play_gif: Автоматически проигрывать GIF анимации

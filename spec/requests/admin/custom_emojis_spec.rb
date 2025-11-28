@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Admin Custom Emojis' do
-  describe 'POST /admin/custom_emojis' do
+  describe 'POST /admin/dm_check' do
     before { sign_in Fabricate(:admin_user) }
 
     it 'gracefully handles invalid nested params' do

@@ -797,8 +797,6 @@ sk:
     deleted_msg: Alias úspešne odstránený. Presun z tamtoho účtu na tento už viac nebude možný.
     remove: Odpoj alias
   appearance:
-    advanced_web_interface: Pokročilé webové rozhranie
-    advanced_web_interface_hint: 'Ak chceš využiť celkovú šírku tvojej obrazovky, pokročilé webové rozhranie ti umožňuje nastaviť mnoho rôznych stĺpcov, aby si videl/a toľko informácií naraz, koľko chceš: Domov, oboznámenia, federovanú časovú os, a ľubovolný počet zoznamov, či haštagov.'
     animations_and_accessibility: Animácie a prístupnosť
     confirmation_dialogs: Potvrdzovacie dialógy
     discovery: Nájdenie

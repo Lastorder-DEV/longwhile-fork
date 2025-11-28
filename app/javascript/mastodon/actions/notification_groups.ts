@@ -30,18 +30,7 @@ import { importFetchedAccounts, importFetchedStatuses } from './importer';
 import { NOTIFICATIONS_FILTER_SET } from './notifications';
 import { saveSettings } from './settings';
 
-function excludeAllTypesExcept(filter: string) {
-  return allNotificationTypes.filter((item) => item !== filter);
-}
-
-function getExcludedTypes(state: RootState) {
-  const activeFilter = selectSettingsNotificationsQuickFilterActive(state);
-
-  return activeFilter === 'all'
-    ? selectSettingsNotificationsExcludedTypes(state)
-    : excludeAllTypesExcept(activeFilter);
-}
-
+// --- 기존 함수 유지 ---
 function dispatchAssociatedRecords(
   dispatch: AppDispatch,
   notifications: ApiNotificationGroupJSON[] | ApiNotificationJSON[],
@@ -78,27 +67,85 @@ function selectNotificationGroupedTypes(state: RootState) {
   return types;
 }
 
+// --- mention 제외 절대 금지 & fetch 단계 필터링 ---
+function getExcludedTypes(state: RootState) {
+  const activeFilter = selectSettingsNotificationsQuickFilterActive(state);
+
+  // 기존 제외 타입에서 mention 제거
+  const baseExcluded = selectSettingsNotificationsExcludedTypes(state).filter(
+    (type) => type !== 'mention',
+  );
+
+  if (activeFilter === 'all') return baseExcluded;
+
+  // DM, Mentions, 일반 탭 모두 mention 제외하지 않음
+  return allNotificationTypes.filter(
+    (type) => type !== 'mention' && type !== activeFilter,
+  );
+}
+
+// --- visibility 가져오기 헬퍼 함수 (백엔드 수정 전후 호환성) ---
+function getNotificationVisibility(notification: ApiNotificationGroupJSON | ApiNotificationJSON): string | undefined {
+  // 백엔드에서 status_visibility를 제공하면 우선 사용
+  if ('status_visibility' in notification && notification.status_visibility) {
+    return notification.status_visibility;
+  }
+  // fallback: 기존 status.visibility 사용
+  if ('status' in notification && notification.status?.visibility) {
+    return notification.status.visibility;
+  }
+  return undefined;
+}
+
+// --- fetchNotifications 수정 ---
 export const fetchNotifications = createDataLoadingThunk(
   'notificationGroups/fetch',
-  async (_params, { getState }) =>
-    apiFetchNotificationGroups({
-      grouped_types: selectNotificationGroupedTypes(getState()),
-      exclude_types: getExcludedTypes(getState()),
-    }),
+  async (_params, { getState }) => {
+    const state = getState();
+    const groupedTypes = selectNotificationGroupedTypes(state);
+    const excludeTypes = getExcludedTypes(state);
+    const activeFilter = selectSettingsNotificationsQuickFilterActive(state);
+
+    const allNotifications = await apiFetchNotificationGroups({
+      grouped_types: groupedTypes,
+      exclude_types: excludeTypes,
+    });
+
+    // fetch 후 visibility 기준 필터링
+    const filteredNotifications = allNotifications.notifications.filter((n) => {
+      if (n.type !== 'mention') {
+        return true;
+      }
+
+      const visibility = getNotificationVisibility(n);
+
+      if (activeFilter === 'noti_dm') {
+        return visibility === 'direct';
+      }
+
+      if (activeFilter === 'noti_mention') {
+        return visibility !== 'direct';
+      }
+
+      return true; // all 또는 일반 탭
+    });
+
+    return {
+      ...allNotifications,
+      notifications: filteredNotifications,
+    };
+  },
   ({ notifications, accounts, statuses }, { dispatch }) => {
     dispatch(importFetchedAccounts(accounts));
     dispatch(importFetchedStatuses(statuses));
     dispatchAssociatedRecords(dispatch, notifications);
-    const payload: (ApiNotificationGroupJSON | NotificationGap)[] =
-      notifications;
 
-    // TODO: might be worth not using gaps for that…
-    // if (nextLink) payload.push({ type: 'gap', loadUrl: nextLink.uri });
+    const payload: (ApiNotificationGroupJSON | NotificationGap)[] = notifications;
+
     if (notifications.length > 1)
       payload.push({ type: 'gap', maxId: notifications.at(-1)?.page_min_id });
 
     return payload;
-    // dispatch(submitMarkers());
   },
 );
 
@@ -122,17 +169,33 @@ export const fetchNotificationsGap = createDataLoadingThunk(
 export const pollRecentNotifications = createDataLoadingThunk(
   'notificationGroups/pollRecentNotifications',
   async (_params, { getState }) => {
-    return apiFetchNotificationGroups({
-      grouped_types: selectNotificationGroupedTypes(getState()),
+    const state = getState();
+    const groupedTypes = selectNotificationGroupedTypes(state);
+    const excludeTypes = getExcludedTypes(state);
+
+    const allNotifications = await apiFetchNotificationGroups({
+      grouped_types: groupedTypes,
+      exclude_types: excludeTypes,
       max_id: undefined,
-      exclude_types: getExcludedTypes(getState()),
-      // In slow mode, we don't want to include notifications that duplicate the already-displayed ones
       since_id: usePendingItems
-        ? getState().notificationGroups.groups.find(
-            (group) => group.type !== 'gap',
-          )?.page_max_id
+        ? state.notificationGroups.groups.find((g) => g.type !== 'gap')?.page_max_id
         : undefined,
     });
+
+    // fetch 후 visibility 기준 필터링
+    const activeFilter = selectSettingsNotificationsQuickFilterActive(state);
+    const filteredNotifications = allNotifications.notifications.filter((n) => {
+      if (n.type !== 'mention') return true;
+      const visibility = getNotificationVisibility(n);
+      if (activeFilter === 'noti_dm') return visibility === 'direct';
+      if (activeFilter === 'noti_mention') return visibility !== 'direct';
+      return true;
+    });
+
+    return {
+      ...allNotifications,
+      notifications: filteredNotifications,
+    };
   },
   ({ notifications, accounts, statuses }, { dispatch }) => {
     dispatch(importFetchedAccounts(accounts));
@@ -141,9 +204,7 @@ export const pollRecentNotifications = createDataLoadingThunk(
 
     return { notifications };
   },
-  {
-    useLoadingBar: false,
-  },
+  { useLoadingBar: false },
 );
 
 export const processNewNotificationForGroups = createAppAsyncThunk(
@@ -153,24 +214,32 @@ export const processNewNotificationForGroups = createAppAsyncThunk(
     const activeFilter = selectSettingsNotificationsQuickFilterActive(state);
     const notificationShows = selectSettingsNotificationsShows(state);
 
-    const showInColumn =
-      activeFilter === 'all'
-        ? notificationShows[notification.type] !== false
-        : activeFilter === notification.type;
+    const showInColumn = (() => {
+      if (activeFilter === 'all') {
+        return notificationShows[notification.type] !== false;
+      }
+
+      if (activeFilter === 'noti_dm') {
+        const visibility = getNotificationVisibility(notification);
+        return notification.type === 'mention' && visibility === 'direct';
+      }
+
+      if (activeFilter === 'noti_mention') {
+        const visibility = getNotificationVisibility(notification);
+        return notification.type === 'mention' && visibility !== 'direct';
+      }
+
+      return activeFilter === notification.type;
+    })();
 
     if (!showInColumn) return;
 
-    if (
-      (notification.type === 'mention' || notification.type === 'update') &&
-      notification.status?.filtered
-    ) {
+    if ((notification.type === 'mention' || notification.type === 'update') && notification.status?.filtered) {
       const filters = notification.status.filtered.filter((result) =>
         result.filter.context.includes('notifications'),
       );
 
-      if (filters.some((result) => result.filter.filter_action === 'hide')) {
-        return;
-      }
+      if (filters.some((result) => result.filter.filter_action === 'hide')) return;
     }
 
     dispatchAssociatedRecords(dispatch, [notification]);
@@ -187,13 +256,9 @@ export const loadPending = createAction('notificationGroups/loadPending');
 export const updateScrollPosition = createAppAsyncThunk(
   'notificationGroups/updateScrollPosition',
   ({ top }: { top: boolean }, { dispatch, getState }) => {
-    if (
-      top &&
-      getState().notificationGroups.mergedNotifications === 'needs-reload'
-    ) {
+    if (top && getState().notificationGroups.mergedNotifications === 'needs-reload') {
       void dispatch(fetchNotifications());
     }
-
     return { top };
   },
 );
@@ -216,19 +281,13 @@ export const clearNotifications = createDataLoadingThunk(
   () => apiClearNotifications(),
 );
 
-export const markNotificationsAsRead = createAction(
-  'notificationGroups/markAsRead',
-);
+export const markNotificationsAsRead = createAction('notificationGroups/markAsRead');
 
 export const mountNotifications = createAppAsyncThunk(
   'notificationGroups/mount',
   (_, { dispatch, getState }) => {
     const state = getState();
-
-    if (
-      state.notificationGroups.mounted === 0 &&
-      state.notificationGroups.mergedNotifications === 'needs-reload'
-    ) {
+    if (state.notificationGroups.mounted === 0 && state.notificationGroups.mergedNotifications === 'needs-reload') {
       void dispatch(fetchNotifications());
     }
   },
@@ -240,14 +299,9 @@ export const refreshStaleNotificationGroups = createAppAsyncThunk<{
   deferredRefresh: boolean;
 }>('notificationGroups/refreshStale', (_, { dispatch, getState }) => {
   const state = getState();
-
-  if (
-    state.notificationGroups.scrolledToTop ||
-    !state.notificationGroups.mounted
-  ) {
+  if (state.notificationGroups.scrolledToTop || !state.notificationGroups.mounted) {
     void dispatch(fetchNotifications());
     return { deferredRefresh: false };
   }
-
   return { deferredRefresh: true };
 });

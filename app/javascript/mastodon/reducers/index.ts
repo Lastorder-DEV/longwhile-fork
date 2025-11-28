@@ -3,6 +3,8 @@ import { Record as ImmutableRecord } from 'immutable';
 import { loadingBarReducer } from 'react-redux-loading-bar';
 import { combineReducers } from 'redux-immutable';
 
+import { RESET_ALL } from '../actions/store';
+
 import { accountsReducer } from './accounts';
 import { accountsFamiliarFollowersReducer } from './accounts_familiar_followers';
 import { accountsMapReducer } from './accounts_map';
@@ -21,6 +23,8 @@ import { markersReducer } from './markers';
 import media_attachments from './media_attachments';
 import meta from './meta';
 import { modalReducer } from './modal';
+import { multiAccountReducer } from './multi_account';
+import { navigationReducer } from './navigation';
 import { notificationGroupsReducer } from './notification_groups';
 import { notificationPolicyReducer } from './notification_policy';
 import { notificationRequestsReducer } from './notification_requests';
@@ -76,6 +80,8 @@ const reducers = {
   history,
   notificationPolicy: notificationPolicyReducer,
   notificationRequests: notificationRequestsReducer,
+  multiAccount: multiAccountReducer,
+  navigation: navigationReducer,
 };
 
 // We want the root state to be an ImmutableRecord, which is an object with a defined list of keys,
@@ -94,6 +100,30 @@ const initialRootState = Object.fromEntries(
 
 const RootStateRecord = ImmutableRecord(initialRootState, 'RootState');
 
-const rootReducer = combineReducers(reducers, RootStateRecord);
+const combinedReducer = combineReducers(reducers, RootStateRecord);
+
+const rootReducer = (state: any, action: any) => {
+  if (action?.type === RESET_ALL) {
+    const nextState = combinedReducer(undefined, action);
+
+    if (state?.get && nextState?.set) {
+      return nextState
+        .set('multiAccount', state.get('multiAccount'))
+        .set('meta', state.get('meta'));
+    }
+
+    if (state && typeof state === 'object') {
+      return {
+        ...nextState,
+        multiAccount: (state as any).multiAccount,
+        meta: (state as any).meta,
+      };
+    }
+
+    return nextState;
+  }
+
+  return combinedReducer(state, action);
+};
 
 export { rootReducer };
