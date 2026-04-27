@@ -14,8 +14,11 @@ import { debounce } from 'lodash';
 import { fetchTrendingStatuses, expandTrendingStatuses } from 'mastodon/actions/trends';
 import { DismissableBanner } from 'mastodon/components/dismissable_banner';
 import StatusList from 'mastodon/components/status_list';
+import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
 import { getStatusList } from 'mastodon/selectors';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
+
+import SignInBanner from '../ui/components/sign_in_banner';
 
 const mapStateToProps = state => ({
   statusIds: getStatusList(state, 'trending'),
@@ -53,16 +56,38 @@ class Statuses extends PureComponent {
   render () {
     const { isLoading, hasMore, statusIds, multiColumn } = this.props;
 
-    const emptyMessage = !signedIn && (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
-        <SignInBanner />
-      </div>
-    );
+    const banner = signedIn ? (
+      <DismissableBanner id='explore/statuses'>
+        <FormattedMessage id='dismissable_banner.explore_statuses' defaultMessage='These posts from across the fediverse are gaining traction today. Newer posts with more boosts and favorites are ranked higher.' />
+      </DismissableBanner>
+    ) : null;
+
+    if (!isLoading && statusIds.isEmpty()) {
+      return (
+        <div className='explore__links scrollable scrollable--flex'>
+          {banner}
+
+          {!signedIn && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+              <SignInBanner />
+            </div>
+          )}
+
+          {signedIn && (
+            <div className='empty-column-indicator'>
+              <FormattedMessage id='empty_column.explore_statuses' defaultMessage='Nothing is trending right now. Check back later!' />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const emptyMessage = <FormattedMessage id='empty_column.explore_statuses' defaultMessage='Nothing is trending right now. Check back later!' />;
 
     return (
       <StatusList
         trackScroll
-        prepend={<DismissableBanner id='explore/statuses'><FormattedMessage id='dismissable_banner.explore_statuses' defaultMessage='These posts from across the fediverse are gaining traction today. Newer posts with more boosts and favorites are ranked higher.' /></DismissableBanner>}
+        prepend={banner}
         alwaysPrepend
         timelineId='explore'
         statusIds={statusIds}

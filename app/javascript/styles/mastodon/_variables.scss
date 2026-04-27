@@ -12,6 +12,9 @@ $long-while-500: #1d9bf0;
 $long-while-400: #1d9bf0;
 $long-while-300: #1d9bf0;
 
+// 계정 스위처 "기존 계정 추가" 버튼 글자색 (라이트 테마는 $longwhile-500로 오버라이드)
+$account-switcher-add-text-color: $long-while-500 !default;
+
 $grey-600: hsl(215, 10%, 63%); // Trout
 $grey-100: hsl(209, 41%, 90%); // Topaz
 
