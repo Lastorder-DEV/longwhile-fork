@@ -22,6 +22,9 @@ FileUtils.chdir APP_ROOT do
   system! 'bin/yarn set version classic'
   system! 'bin/yarn install --immutable'
 
+  puts "\n== Setting developement env =="
+  system! 'sed -i "s/{CODESPACE_NAME}/${CODESPACE_NAME}/g" .env.development'
+
   puts "\n== Preparing database =="
   system! 'bin/rails db:prepare'
 
