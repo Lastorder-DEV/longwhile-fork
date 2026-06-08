@@ -9,6 +9,8 @@ module MultiAccounts
     class InvalidStateError < StandardError; end
 
     class << self
+      include Redisable
+      
       def store!(state:, nonce:, user_id:, redirect_uri:)
         data = {
           nonce: nonce,
@@ -55,12 +57,6 @@ module MultiAccounts
         redis.setex(key, ttl, data.to_json)
 
         data.with_indifferent_access
-      end
-
-      private
-
-      def redis
-        Redis.current
       end
     end
   end
